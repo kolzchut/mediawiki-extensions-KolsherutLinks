@@ -1,0 +1,74 @@
+{
+  "name": "KolsherutLinks",
+  "version": "0.0.1",
+  "author": ["Joel R. ([http://www.kolzchut.org.il Kol-Zchut])"],
+  "url": "https://github.com/kolzchut/mediawiki-extensions-KolsherutLinks",
+  "descriptionmsg": "kolsherutlinks-desc",
+  "license-name": "GPL-2.0-or-later",
+  "type": "other",
+  "requires": {
+    "MediaWiki": ">= 1.35.0"
+  },
+  "AutoloadNamespaces": {
+    "MediaWiki\\Extension\\KolsherutLinks\\": "src/"
+  },
+  "config": {
+    "KolsherutLinksEnableFoo": {
+      "description": "Enable the Foo feature.",
+      "value": true
+    }
+  },
+  "HookHandlers": {
+    "KolsherutLinksHooks": {
+      "class": "MediaWiki\\Extension\\KolsherutLinks\\Hooks"
+    }
+  },
+  "Hooks": {
+    "ParserAfterParse": "KolsherutLinksHooks",
+    "ParserFirstCallInit": "KolsherutLinksHooks",
+    "LoadExtensionSchemaUpdates": "KolsherutLinksHooks"
+  },
+  "MessagesDirs": {
+    "KolsherutLinks": ["i18n"]
+  },
+	"ExtensionMessagesFiles": {
+		"KolsherutLinksAliases": "KolsherutLinks.i18n.alias.php"
+	},
+  "SpecialPages": {
+    "KolsherutLinksList": "MediaWiki\\Extension\\KolsherutLinks\\SpecialKolsherutLinksList",
+    "KolsherutLinksDetails": "MediaWiki\\Extension\\KolsherutLinks\\SpecialKolsherutLinksDetails"
+  },
+	"ResourceModules": {
+		"ext.KolsherutLinks.list": {
+				"localBasePath": "resources/ext.KolsherutLinks.list",
+				"remoteExtPath": "KolsherutLinks",
+				"scripts": ["ext.KolsherutLinks.list.js"],
+				"styles": ["ext.KolsherutLinks.list.css"]
+		},
+		"ext.KolsherutLinks.details": {
+			"localBasePath": "resources/ext.KolsherutLinks.details",
+			"remoteExtPath": "KolsherutLinks",
+			"scripts": ["ext.KolsherutLinks.details.js"],
+			"styles": ["ext.KolsherutLinks.details.css"]
+		},
+		"ext.KolsherutLinks.catRule": {
+			"localBasePath": "resources/ext.KolsherutLinks.catRule",
+			"remoteExtPath": "KolsherutLinks",
+			"scripts": ["ext.KolsherutLinks.catRule.js"],
+			"messages": ["kolsherutlinks-details-category-add", "kolsherutlinks-details-category-maximum-reached"]
+		},
+		"ext.KolsherutLinks.confirmation": {
+			"localBasePath": "resources/ext.KolsherutLinks.confirmation",
+			"remoteExtPath": "KolsherutLinks",
+			"scripts": ["ext.KolsherutLinks.confirmation.js"],
+			"messages": ["kolsherutlinks-confirmation-prompt", "kolsherutlinks-confirmation-confirm", "kolsherutlinks-confirmation-cancel"]
+		},
+		"jquery.tablesorter.pager" : {
+			"localBasePath": "resources/jquery.tablesorter.pager",
+			"remoteExtPath": "KolsherutLinks",
+			"scripts": ["jquery-latest-min.js", "jquery.tablesorter.min.js", "jquery.tablesorter.widgets.min.js", "jquery.tablesorter.pager.min.js"],
+			"styles": ["jquery.tablesorter.css"]
+		}
+	},
+  "manifest_version": 2
+}

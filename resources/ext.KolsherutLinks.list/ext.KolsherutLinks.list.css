@@ -1,0 +1,4 @@
+/* No filter for the ops-links column */
+.tablesorter-filter-row td:last-child input.tablesorter-filter {
+	display: none;
+}
