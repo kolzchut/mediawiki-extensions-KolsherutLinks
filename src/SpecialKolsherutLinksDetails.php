@@ -92,21 +92,8 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 					->setSubmitCallback( [ $this, 'handleCategoryRuleSave' ] )
 					->show();
 				$output->addJsConfigVars( [
-					'kslAllCategories' => array_values( $this->getAllCategories() ),
-				] );
-				$output->addModules( 'ext.KolsherutLinks.catRule' );
-				break;
-			case 'add_content_area':
-				$output->setPageTitle( $this->msg( 'kolsherutlinks-details-title-add-content-area' ) );
-				$htmlForm = \HTMLForm::factory( 'ooui', $this->getAddContentAreaForm( $linkId ), $this->getContext() );
-				$htmlForm->setId( 'kolsherutLinksAddContentAreaForm' )
-					->setFormIdentifier( 'kolsherutLinksAddContentAreaForm' )
-					->setSubmitName( "ksl-submit" )
-					->setSubmitTextMsg( 'kolsherutlinks-details-rule-submit' )
-					->setSubmitCallback( [ $this, 'handleContentAreaRuleSave' ] )
-					->show();
-				$output->addJsConfigVars( [
 					'kslAllContentAreas' => array_values( $this->getAllContentAreas() ),
+					'kslAllCategories' => array_values( $this->getAllCategories() ),
 				] );
 				$output->addModules( 'ext.KolsherutLinks.catRule' );
 				break;
@@ -189,55 +176,6 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 			</div>
 		' );
 
-		// Content area rules
-		if ( \ExtensionRegistry::getInstance()->isLoaded( 'ArticleContentArea' ) ) {
-			$output->addHTML( '<h2>' . $this->msg( 'kolsherutlinks-details-label-content-area-rules' ) . '</h2>' );
-			$res = KolsherutLinks::getLinkContentAreaRules( $linkId );
-			$tableBody = '';
-			$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' );
-			for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-				$tableBody .= '<tr>';
-				$catTitle = \Title::makeTitle( NS_CATEGORY, $row['title'] );
-				$tableBody .= '<td><a target="_blank" href="' . $catTitle->getLocalURL() . '">'
-					. $catTitle->getBaseText() . '</a></td>';
-				// Is fallback?
-				$tableBody .= '<td>' . ( $row['fallback'] ? 'X' : '' ) . '</td>';
-				// Link to delete this rule
-				$deleteRuleUrl = $output->getTitle()->getLocalURL( [
-					'op' => 'delete_rule',
-					'rule_id' => $row['rule_id'],
-					'link_id' => $linkId,
-				] );
-				$tableBody .= '<td><a class="kolsherutlinks-require-confirmation" data-confirmation-title="' . $deleteMsg
-					. '" href="' . $deleteRuleUrl . '">' . $deleteMsg . '</a></td>';
-				$tableBody .= "</tr>";
-			}
-			if ( !empty( $tableBody ) ) {
-				$output->addHTML( '
-					<table class="mw-datatable kolsherut-content-area-rules">
-						<thead>
-							<tr>
-								<th>' . $this->msg( 'kolsherutlinks-details-rule-header-content-area' ) . '</th>
-								<th>' . $this->msg( 'kolsherutlinks-details-rule-header-fallback' ) . '</th>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>' . $tableBody . '</tbody>
-					</table>
-				' );
-			}
-		}
-
-		// Add content area rule button
-		$addContentAreaUrl = $output->getTitle()->getLocalURL( [ 'op' => 'add_content_area', 'link_id' => $linkId ] );
-		$output->addHTML( '
-			<div class="ksl-details-add-content-area">
-				<a class="btn btn-primary" href="' . $addContentAreaUrl . '">'
-				. $this->msg( 'kolsherutlinks-details-op-add-content-area' )
-				. '</a>
-			</div>
-		' );
-
 		// Category rules
 		$output->addHTML( '<h2>' . $this->msg( 'kolsherutlinks-details-label-category-rules' ) . '</h2>' );
 		$res = KolsherutLinks::getLinkCategoryRules( $linkId );
@@ -245,16 +183,28 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' );
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$tableBody .= '<tr>';
-			// Category name(s) with link(s) (in new tab/window)
-			$links = [];
-			foreach ( array_filter( [
-				$row['cat1_title'], $row['cat2_title'], $row['cat3_title'], $row['cat4_title']
-			] ) as $categoryName ) {
-				$catTitle = \Title::makeTitle( NS_CATEGORY, $categoryName );
-				$links[] = '<a target="_blank" href="' . $catTitle->getLocalURL() . '">' . $catTitle->getBaseText()
-					. '</a>';
+			// Content area name with link (in new tab/window)
+			if ( !empty( $row['content_area_title'] ) ) {
+				$caTitle = \Title::makeTitle( NS_CATEGORY, $row['content_area_title'] );
+				$tableBody .= '<td><a target="_blank" href="' . $caTitle->getLocalURL() . '">'
+					. $caTitle->getBaseText() . '</a></td>';
+			} else {
+				$tableBody .= '<td></td>';
 			}
-			$tableBody .= '<td>' . implode( ' + ', $links ) . '</td>';
+			// Category name(s) with link(s) (in new tab/window)
+			if ( !empty( $row['cat1_title'] ) ) {
+				$links = [];
+				foreach ( array_filter( [
+					$row['cat1_title'], $row['cat2_title'], $row['cat3_title'], $row['cat4_title']
+				] ) as $categoryName ) {
+					$catTitle = \Title::makeTitle( NS_CATEGORY, $categoryName );
+					$links[] = '<a target="_blank" href="' . $catTitle->getLocalURL() . '">' . $catTitle->getBaseText()
+						. '</a>';
+				}
+				$tableBody .= '<td>' . implode( ' + ', $links ) . '</td>';
+			} else {
+				$tableBody .= '<td></td>';
+			}
 			// Is fallback?
 			$tableBody .= '<td>' . ( $row['fallback'] ? 'X' : '' ) . '</td>';
 			// Priority score
@@ -274,6 +224,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 				<table class="mw-datatable kolsherut-category-rules">
 					<thead>
 						<tr>
+							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-content-area' ) . '</th>
 							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-categories' ) . '</th>
 							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-fallback' ) . '</th>
 							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-priority' ) . '</th>
@@ -469,82 +420,6 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 	}
 
 	/**
-	 * Define content area rule form structure
-	 * @param int $linkId
-	 * @return array
-	 */
-	private function getAddContentAreaForm( $linkId ) {
-		$link = KolsherutLinks::getLinkDetails( $linkId );
-		if ( empty( $link ) ) {
-			// Error: couldn't query the link we're trying to add this rule to.
-			throw new MWException( $this->msg( 'kolsherutlinks-details-error-not-found', $linkId ) );
-		}
-		$form = [
-			'kslLinkUrl' => [
-				'type' => 'info',
-				'label-message' => 'kolsherutlinks-details-label-page-link-url',
-				'default' => "<a target=\"_blank\" href=\"{$link['url']}\">{$link['url']}</a>",
-				'raw' => true,
-			],
-			'kslContentAreaName' => [
-				'type' => 'text',
-				'cssclass' => 'ksl-content-area-name',
-				'label-message' => 'kolsherutlinks-details-label-content-area',
-				'required' => true,
-			],
-			'kslFallback' => [
-				'type' => 'check',
-				'label-message' => 'kolsherutlinks-details-label-fallback',
-			],
-			'kslLinkId' => [
-				'type' => 'hidden',
-				'default' => $linkId,
-			],
-			'kslOp' => [
-				'type' => 'hidden',
-				'default' => 'add_content_area',
-			],
-		];
-		return $form;
-	}
-
-	/**
-	 * Handle add category/ies rule form submission
-	 * @param array $postData Form submission data
-	 * @return string|bool Return true on success, error message on failure
-	 */
-	public function handleContentAreaRuleSave( $postData ) {
-		$output = $this->getOutput();
-		$linkId = $postData['kslLinkId'];
-
-		// Valid content area name?
-		$category = \Category::newFromName( $postData[ 'kslContentAreaName' ] );
-		if ( empty( $category->getID() ) ) {
-			// No. Stop processing and re-prompt for a valid name.
-			return [ [ 'kolsherutlinks-details-error-category-not-found', $postData[ 'kslContentAreaName' ] ] ];
-		}
-		// Insert new rule
-		$res = KolsherutLinks::insertRule( [
-			'link_id' => $linkId,
-			'fallback' => ( $postData[ 'kslFallback' ] ? 1 : 0 ),
-			'content_area_id' => $category->getID(),
-			'priority' => 3,
-		] );
-		if ( !$res ) {
-			// Insert failed for some reason.
-			return 'kolsherutlinks-details-error-rule-failed-save';
-		}
-
-		// Reassign links to pages
-		KolsherutLinks::reassignPagesLinks();
-
-		// Redirect to display link details.
-		$displayUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
-		$output->redirect( $displayUrl, '303' );
-		return true;
-	}
-
-	/**
 	 * Define category/ies rule form structure
 	 * @param int $linkId
 	 * @return array
@@ -562,11 +437,15 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 				'default' => "<a target=\"_blank\" href=\"{$link['url']}\">{$link['url']}</a>",
 				'raw' => true,
 			],
+			'kslContentAreaName' => [
+				'type' => 'text',
+				'cssclass' => 'ksl-content-area-name',
+				'label-message' => 'kolsherutlinks-details-label-content-area',
+			],
 			'kslCategory1Name' => [
 				'type' => 'text',
 				'cssclass' => 'ksl-category-name',
 				'label-message' => 'kolsherutlinks-details-label-category',
-				'required' => true,
 			],
 			'kslCategory2Name' => [
 				'type' => 'text',
@@ -608,6 +487,21 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$output = $this->getOutput();
 		$linkId = $postData['kslLinkId'];
 
+		// Require at least one category or content area
+		if ( empty( $postData['kslContentAreaName'] ) && empty( $postData['kslCategory1Name'] ) ) {
+			// Stop processing and re-prompt for at least one or the other.
+			return 'kolsherutlinks-details-error-category-not-entered';
+		}
+
+		// Verify content area name
+		if ( !empty( $postData['kslContentAreaName'] ) ) {
+			$contentArea = \Category::newFromName( $postData[ 'kslContentAreaName' ] );
+			if ( empty( $contentArea->getID() ) ) {
+				// No. Stop processing and re-prompt for a valid name.
+				return [ [ 'kolsherutlinks-details-error-category-not-found', $postData[ 'kslContentAreaName' ] ] ];
+			}
+		}
+
 		// Collect and verify category names
 		$categories = [];
 		foreach ( [ 'kslCategory1Name', 'kslCategory2Name', 'kslCategory3Name', 'kslCategory4Name' ]  as $key ) {
@@ -622,12 +516,21 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 			}
 		}
 
+		// Remove any duplicate categories
+		$categories = array_values( array_unique( $categories ) );
+
 		// Insert new rule
 		$values = [
 			'link_id' => $linkId,
 			'fallback' => ( $postData[ 'kslFallback' ] ? 1 : 0 ),
-			'priority' => $this->calculatePriority( [ 'category' => count( $categories ) ] ),
+			'priority' => $this->calculatePriority( [
+				'category' => count( $categories ),
+				'content_area' => !empty( $contentArea ),
+			] ),
 		];
+		if ( !empty( $contentArea ) ) {
+			$values['content_area_id'] = $contentArea->getID();
+		}
 		for ( $i = 0; $i < count( $categories ); $i++ ) {
 			$values[ 'category_id_' . ( $i + 1 ) ] = $categories[ $i ];
 		}
@@ -681,10 +584,13 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 			// Page rules automatically get a score of 999.
 			return 999;
 		}
+		// Category/content area score
+		$score = $attributes['content_area'] ? 3 : 0;
 		if ( !empty( $attributes['category'] ) ) {
 			// Each category gets two points.
-			return 2 * $attributes['category'];
+			$score += 2 * $attributes['category'];
 		}
+		return $score;
 	}
 
 	/**

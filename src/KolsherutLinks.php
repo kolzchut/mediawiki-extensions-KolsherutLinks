@@ -55,40 +55,12 @@ class KolsherutLinks {
 	 * @param int $linkId Link ID
 	 * @return \IResultWrapper
 	 */
-	public static function getLinkContentAreaRules( $linkId ) {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
-			[
-				'rules' => 'kolsherutlinks_rules',
-				'category' => 'category',
-			],
-			[
-				'rule_id' => 'rules.rule_id',
-				'fallback' => 'rules.fallback',
-				'content_area_id' => 'rules.content_area_id',
-				'title' => 'category.cat_title',
-			],
-			[
-				"rules.link_id={$linkId}",
-				"rules.content_area_id IS NOT NULL",
-			],
-			__METHOD__,
-			[ 'ORDER BY' => 'title ASC' ],
-			[
-				'category' => [ 'LEFT JOIN', 'category.cat_id=rules.content_area_id' ],
-			],
-		);
-	}
-
-	/**
-	 * @param int $linkId Link ID
-	 * @return \IResultWrapper
-	 */
 	public static function getLinkCategoryRules( $linkId ) {
 		$dbw = wfGetDB( DB_PRIMARY );
 		return $dbw->select(
 			[
 				'rules' => 'kolsherutlinks_rules',
+				'content_area' => 'category',
 				'category1' => 'category',
 				'category2' => 'category',
 				'category3' => 'category',
@@ -98,10 +70,12 @@ class KolsherutLinks {
 				'rule_id' => 'rules.rule_id',
 				'fallback' => 'rules.fallback',
 				'priority' => 'rules.priority',
+				'content_area_id' => 'rules.content_area_id',
 				'category_id_1' => 'rules.category_id_1',
 				'category_id_2' => 'rules.category_id_2',
 				'category_id_3' => 'rules.category_id_3',
 				'category_id_4' => 'rules.category_id_4',
+				'content_area_title' => 'content_area.cat_title',
 				'cat1_title' => 'category1.cat_title',
 				'cat2_title' => 'category2.cat_title',
 				'cat3_title' => 'category3.cat_title',
@@ -109,14 +83,15 @@ class KolsherutLinks {
 			],
 			[
 				"rules.link_id={$linkId}",
-				"rules.category_id_1 IS NOT NULL",
+				"rules.content_area_id IS NOT NULL OR rules.category_id_1 IS NOT NULL",
 			],
 			__METHOD__,
 			[
-				'ORDER BY' =>
-					'priority DESC, fallback ASC, cat1_title ASC, cat2_title ASC, cat3_title ASC, cat4_title ASC'
+				'ORDER BY' => 'priority DESC, fallback ASC, content_area.cat_title, cat1_title ASC'
+					. ', cat2_title ASC, cat3_title ASC, cat4_title ASC'
 			],
 			[
+				'content_area' => [ 'LEFT JOIN', 'content_area.cat_id=rules.content_area_id' ],
 				'category1' => [ 'LEFT JOIN', 'category1.cat_id=rules.category_id_1' ],
 				'category2' => [ 'LEFT JOIN', 'category2.cat_id=rules.category_id_2' ],
 				'category3' => [ 'LEFT JOIN', 'category3.cat_id=rules.category_id_3' ],
@@ -279,24 +254,30 @@ class KolsherutLinks {
 					WHERE page_rules.page_id IS NOT NULL
 					GROUP BY page_rules.page_id
 				UNION
-				SELECT pp.pp_page AS page_id, ca_rules.rule_id, ca_rules.link_id, ca_rules.fallback, ca_rules.priority
-					FROM kolsherutlinks_rules AS ca_rules
-					INNER JOIN category AS ca_cat ON ca_cat.cat_id=ca_rules.content_area_id
-					INNER JOIN page_props AS pp ON pp.pp_value=REPLACE(ca_cat.cat_title, '_', ' ')
-					WHERE pp.pp_propname='ArticleContentArea'
-				UNION
-				SELECT cl1.cl_from AS page_id, cat_rules.rule_id, cat_rules.link_id, cat_rules.fallback, 
-						cat_rules.priority
+				SELECT IFNULL(cl1.cl_from, pp.pp_page) AS page_id, cat_rules.rule_id, cat_rules.link_id, 
+						cat_rules.fallback, cat_rules.priority
 					FROM kolsherutlinks_rules AS cat_rules
-					INNER JOIN category AS cat1 ON cat1.cat_id=cat_rules.category_id_1
+					LEFT JOIN category AS ca ON ca.cat_id=cat_rules.content_area_id
+					LEFT JOIN category AS cat1 ON cat1.cat_id=cat_rules.category_id_1
 					LEFT JOIN category AS cat2 ON cat2.cat_id=cat_rules.category_id_2
 					LEFT JOIN category AS cat3 ON cat3.cat_id=cat_rules.category_id_3
 					LEFT JOIN category AS cat4 ON cat4.cat_id=cat_rules.category_id_4
-					INNER JOIN categorylinks AS cl1 ON cl1.cl_to=cat1.cat_title
-					LEFT JOIN categorylinks AS cl2 ON cl2.cl_to=cat2.cat_title
-					LEFT JOIN categorylinks AS cl3 ON cl3.cl_to=cat3.cat_title
-					LEFT JOIN categorylinks AS cl4 ON cl4.cl_to=cat4.cat_title
-					WHERE (cat_rules.category_id_2 IS NULL OR cl2.cl_from=cl1.cl_from)
+					LEFT JOIN page_props AS pp ON (
+						ca.cat_id IS NOT NULL AND pp.pp_propname='ArticleContentArea' AND 
+						REPLACE(pp.pp_value, ' ', '_')=ca.cat_title
+					)
+					LEFT JOIN categorylinks AS cl1 ON (cat1.cat_id IS NOT NULL AND cl1.cl_to=cat1.cat_title)
+					LEFT JOIN categorylinks AS cl2 ON (cat2.cat_id IS NOT NULL AND cl2.cl_to=cat2.cat_title)
+					LEFT JOIN categorylinks AS cl3 ON (cat3.cat_id IS NOT NULL AND cl3.cl_to=cat3.cat_title)
+					LEFT JOIN categorylinks AS cl4 ON (cat4.cat_id IS NOT NULL AND cl4.cl_to=cat4.cat_title)
+					WHERE (cat_rules.content_area_id IS NOT NULL OR cat_rules.category_id_1 IS NOT NULL)
+						AND (cat_rules.content_area_id IS NULL OR pp.pp_page IS NOT NULL)
+						AND (cat_rules.category_id_1 IS NULL OR cl1.cl_from IS NOT NULL)
+						AND (
+							cat_rules.content_area_id IS NULL OR cat_rules.category_id_1 IS NULL OR
+							pp.pp_page=cl1.cl_from
+						)
+						AND (cat_rules.category_id_2 IS NULL OR cl2.cl_from=cl1.cl_from)
 						AND (cat_rules.category_id_3 IS NULL OR cl3.cl_from=cl1.cl_from)
 						AND (cat_rules.category_id_4 IS NULL OR cl4.cl_from=cl1.cl_from)
 				ORDER BY page_id ASC, fallback ASC, priority DESC;"
