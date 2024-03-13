@@ -111,6 +111,13 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$output = $this->getOutput();
 		$output->addModules( 'ext.KolsherutLinks.details' );
 
+		// Link back to list page
+		$detailsPage = \SpecialPage::getTitleFor( 'KolsherutLinksList' );
+		$output->addHTML(
+			'<p class="ksl-details-list-link"><a href="' . $detailsPage->getLocalURL() . '">'
+			. $this->msg( 'kolsherutlinks-details-back-to-list' )->text() . '</a></p>'
+		);
+
 		// Basic link details
 		$link = KolsherutLinks::getLinkDetails( $linkId );
 		$output->addHTML( "<h3>" . $this->msg( 'kolsherutlinks-details-label-url' ) . "</h3>" );
@@ -631,53 +638,5 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 			$contentAreas[ $category->getID() ] = $category->getTitle()->getBaseText();
 		}
 		return $contentAreas;
-	}
-
-	/**
-	 * Callout to open new Jira Service Desk ticket.
-	 * @param string $issueData Issue parameters to send to Jira
-	 * @param array $jiraConfig
-	 * @return mixed Return the JSON-decoded response from Jira on success, FALSE on failure
-	 */
-	private function jiraOpenTicket( $issueData, $jiraConfig ) {
-		$calloutUrl = $jiraConfig['server'] . '/rest/servicedeskapi/request';
-		$postJson = \FormatJson::encode( $issueData );
-		$httpRequest = MediaWikiServices::getInstance()->getHttpRequestFactory()
-			->create( $calloutUrl, [
-				'method' => 'POST',
-				'postData' => $postJson,
-				'username' => $jiraConfig['user'],
-				'password' => $jiraConfig['password']
-			],
-			__METHOD__
-		);
-		$httpRequest->setHeader( 'Accept', 'application/json' );
-		$httpRequest->setHeader( 'Content-Type', 'application/json' );
-		try {
-			$status = $httpRequest->execute();
-			if ( !$status->isOK() ) {
-				$this->logger->error(
-					"Jira open ticket callout failed with message: {errorMsg}, issueData={issueData}",
-					[ 'errorMsg' => $status->getMessage()->toString(), 'issueData' => json_encode( $issueData ) ]
-				);
-				return false;
-			}
-		} catch ( \Exception $e ) {
-			$this->logger->error(
-				"Jira open ticket callout threw exception with message: {exceptionMsg}",
-				[ 'exceptionMsg' => $e->getMessage() ]
-			);
-			return false;
-		}
-		$json = $httpRequest->getContent();
-		$response = \FormatJson::decode( $json, true );
-		if ( !$response ) {
-			$this->logger->error(
-				"Jira open ticket callout failed to parse JSON: {json}",
-				[ 'json' => $json ]
-			);
-			return false;
-		}
-		return $response;
 	}
 }
