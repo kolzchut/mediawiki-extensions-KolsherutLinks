@@ -2,24 +2,25 @@
 
 namespace MediaWiki\Extension\KolsherutLinks;
 
-use MediaWiki\Logger\LoggerFactory;
-use MediaWiki\MediaWikiServices;
+use Category;
+use HTMLForm;
 use MWException;
+use SpecialPage;
+use Title;
+use WikiPage;
 
 /**
  * Details view and create/edit form for a Kol Sherut link and its display rules.
  *
  * @ingroup SpecialPage
  */
-class SpecialKolsherutLinksDetails extends \SpecialPage {
-  private \Psr\Log\LoggerInterface $logger;
+class SpecialKolsherutLinksDetails extends SpecialPage {
 
 	/**
 	 * @inheritDoc
 	 */
 	public function __construct() {
 		parent::__construct( 'KolsherutLinksDetails' );
-		$this->logger = LoggerFactory::getInstance( 'KolsherutLinks' );
 	}
 
 	/**
@@ -49,7 +50,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 			case 'display':
 				if ( empty( $linkId ) ) {
 					// Can't display link without an ID. Redirect to list view.
-					$detailsPage = \SpecialPage::getTitleFor( 'KolsherutLinksList' );
+					$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
 					$output->redirect( $detailsPage->getLocalURL(), '303' );
 				} else {
 					$this->showDetailsPage( $linkId );
@@ -61,7 +62,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 				$output->setPageTitle( $this->msg(
 					$op == 'edit' ? 'kolsherutlinks-details-title-edit' : 'kolsherutlinks-details-title-create'
 				) );
-				$htmlForm = \HTMLForm::factory( 'ooui', $this->getLinkEditForm( $op, $linkId ), $this->getContext() );
+				$htmlForm = HTMLForm::factory( 'ooui', $this->getLinkEditForm( $op, $linkId ), $this->getContext() );
 				$htmlForm->setId( 'kolsherutLinksLinkForm' )
 					->setFormIdentifier( 'kolsherutLinksLinkForm' )
 					->setSubmitName( "ksl-submit" )
@@ -74,7 +75,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 				break;
 			case 'add_page':
 				$output->setPageTitle( $this->msg( 'kolsherutlinks-details-title-add-page' ) );
-				$htmlForm = \HTMLForm::factory( 'ooui', $this->getAddPageForm( $linkId ), $this->getContext() );
+				$htmlForm = HTMLForm::factory( 'ooui', $this->getAddPageForm( $linkId ), $this->getContext() );
 				$htmlForm->setId( 'kolsherutLinksAddPageForm' )
 					->setFormIdentifier( 'kolsherutLinksAddPageForm' )
 					->setSubmitName( "ksl-submit" )
@@ -84,7 +85,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 				break;
 			case 'add_category':
 				$output->setPageTitle( $this->msg( 'kolsherutlinks-details-title-add-category' ) );
-				$htmlForm = \HTMLForm::factory( 'ooui', $this->getAddCategoryForm( $linkId ), $this->getContext() );
+				$htmlForm = HTMLForm::factory( 'ooui', $this->getAddCategoryForm( $linkId ), $this->getContext() );
 				$htmlForm->setId( 'kolsherutLinksAddCategoryForm' )
 					->setFormIdentifier( 'kolsherutLinksAddCategoryForm' )
 					->setSubmitName( "ksl-submit" )
@@ -112,7 +113,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$output->addModules( 'ext.KolsherutLinks.details' );
 
 		// Link back to list page
-		$detailsPage = \SpecialPage::getTitleFor( 'KolsherutLinksList' );
+		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
 		$output->addHTML(
 			'<p class="ksl-details-list-link"><a href="' . $detailsPage->getLocalURL() . '">'
 			. $this->msg( 'kolsherutlinks-details-back-to-list' )->text() . '</a></p>'
@@ -143,7 +144,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' );
 		$res = KolsherutLinks::getLinkRules( $linkId );
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$page = \Title::newFromID( $row['page_id'] );
+			$page = Title::newFromID( $row['page_id'] );
 			$tableBody .= '<tr>';
 			// Page title with link (in new tab/window)
 			$pageUrl = $page->getLocalURL();
@@ -192,7 +193,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 			$tableBody .= '<tr>';
 			// Content area name with link (in new tab/window)
 			if ( !empty( $row['content_area_title'] ) ) {
-				$caTitle = \Title::makeTitle( NS_CATEGORY, $row['content_area_title'] );
+				$caTitle = Title::makeTitle( NS_CATEGORY, $row['content_area_title'] );
 				$tableBody .= '<td><a target="_blank" href="' . $caTitle->getLocalURL() . '">'
 					. $caTitle->getBaseText() . '</a></td>';
 			} else {
@@ -204,7 +205,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 				foreach ( array_filter( [
 					$row['cat1_title'], $row['cat2_title'], $row['cat3_title'], $row['cat4_title']
 				] ) as $categoryName ) {
-					$catTitle = \Title::makeTitle( NS_CATEGORY, $categoryName );
+					$catTitle = Title::makeTitle( NS_CATEGORY, $categoryName );
 					$links[] = '<a target="_blank" href="' . $catTitle->getLocalURL() . '">' . $catTitle->getBaseText()
 						. '</a>';
 				}
@@ -258,7 +259,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$res = KolsherutLinks::getPageAssignmentsByLink( $linkId );
 		$listBody = '';
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$title = \WikiPage::newFromID( $row['page_id'] )->getTitle();
+			$title = WikiPage::newFromID( $row['page_id'] )->getTitle();
 			$listBody .= '<li><a href="' . $title->getLocalURL() . '">' . $title->getBaseText() . '</a></li>';
 		}
 		if ( !empty( $listBody ) ) {
@@ -400,7 +401,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$linkId = $postData['kslLinkId'];
 
 		// Get page ID from title
-		$title = \Title::newFromText( $postData['kslPageTitle'] );
+		$title = Title::newFromText( $postData['kslPageTitle'] );
 		if ( !$title->exists() ) {
 			// Title not found.
 			return 'kolsherutlinks-details-error-page-not-found';
@@ -502,7 +503,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 
 		// Verify content area name
 		if ( !empty( $postData['kslContentAreaName'] ) ) {
-			$contentArea = \Category::newFromName( $postData[ 'kslContentAreaName' ] );
+			$contentArea = Category::newFromName( $postData[ 'kslContentAreaName' ] );
 			if ( empty( $contentArea->getID() ) ) {
 				// No. Stop processing and re-prompt for a valid name.
 				return [ [ 'kolsherutlinks-details-error-category-not-found', $postData[ 'kslContentAreaName' ] ] ];
@@ -513,7 +514,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$categories = [];
 		foreach ( [ 'kslCategory1Name', 'kslCategory2Name', 'kslCategory3Name', 'kslCategory4Name' ]  as $key ) {
 			if ( !empty( $postData[ $key ] ) ) {
-				$category = \Category::newFromName( $postData[ $key ] );
+				$category = Category::newFromName( $postData[ $key ] );
 				// Valid category name?
 				if ( empty( $category->getID() ) ) {
 					// No. Stop processing and re-prompt for a valid name.
@@ -577,7 +578,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$res = KolsherutLinks::deleteLink( $linkId );
 		KolsherutLinks::reassignPagesLinks();
 		$output = $this->getOutput();
-		$detailsPage = \SpecialPage::getTitleFor( 'KolsherutLinksList' );
+		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
 		$output->redirect( $detailsPage->getLocalURL(), '303' );
 	}
 
@@ -613,7 +614,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$categories = [];
 		$res = KolsherutLinks::getAllCategories();
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$catTitle = \Title::makeTitle( NS_CATEGORY, $row['cat_title'] );
+			$catTitle = Title::makeTitle( NS_CATEGORY, $row['cat_title'] );
 			$categories[ $row['cat_id'] ] = $catTitle->getBaseText();
 		}
 		return $categories;
@@ -634,7 +635,7 @@ class SpecialKolsherutLinksDetails extends \SpecialPage {
 		$contentAreas = [];
 		$res = KolsherutLinks::getAllContentAreas();
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$category = \Category::newFromName( $row['pp_value'] );
+			$category = Category::newFromName( $row['pp_value'] );
 			$contentAreas[ $category->getID() ] = $category->getTitle()->getBaseText();
 		}
 		return $contentAreas;

@@ -20,21 +20,10 @@
 namespace MediaWiki\Extension\KolsherutLinks;
 
 class Hooks implements
-	\MediaWiki\Hook\ParserAfterParseHook,
+	\MediaWiki\Hook\ParserBeforeInternalParseHook,
 	\MediaWiki\Hook\ParserFirstCallInitHook,
 	\MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook
 {
-
-	/**
-	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ParserAfterParse
-	 * @param Parser $parser
-	 * @param string &$text Text being parsed
-	 * @param StripState $stripState StripState used
-	 * @return bool|void True or no return value to continue or false to abort
-	 */
-	public function onParserAfterParse( $parser, &$text, $stripState ): bool {
-		return true;
-	}
 
 	/**
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ParserFirstCallInit
@@ -42,7 +31,18 @@ class Hooks implements
 	 * @return bool|void True or no return value to continue or false to abort
 	 */
 	public function onParserFirstCallInit( $parser ): bool {
-		return true;
+		return KolsherutLinksPlacement::onParserFirstCallInit( $parser );
+	}
+
+	/**
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ParserBeforeInternalParse
+	 * @param \Parser $parser
+	 * @param string &$text Text being parsed
+	 * @param \StripState $stripState StripState used
+	 * @return bool|void True or no return value to continue or false to abort
+	 */
+	public function onParserBeforeInternalParse( $parser, &$text, $stripState ) {
+		return KolsherutLinksPlacement::onParserBeforeInternalParse( $parser, $text, $stripState );
 	}
 
 	/**

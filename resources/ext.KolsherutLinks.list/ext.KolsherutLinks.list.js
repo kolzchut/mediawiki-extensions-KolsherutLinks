@@ -28,7 +28,7 @@ mw.loader.using( [ 'mediawiki.api', 'jquery.tablesorter.pager' ], function () {
 			headerTemplate : '{content} {icon}', // new in v2.7. Needed to add the bootstrap icon!
 			widthFixed: true,
 			widgets: [/*'zebra',*/ 'columns', 'filter'],
-			headers: {3: {sorter: false}}
+			headers: {5: {sorter: false}}
 		})
 
 		// initialize the pager plugin

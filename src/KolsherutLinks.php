@@ -3,15 +3,28 @@
 namespace MediaWiki\Extension\KolsherutLinks;
 
 use MediaWiki\Logger\LoggerFactory;
-use MediaWiki\MediaWikiServices;
-use MWException;
+use Psr\Log\LoggerInterface;
+use PurgeJobUtils;
+use Title;
 
 /**
- * Data handling functions for Kol-Sherut links and rules
- *
- * @ingroup SpecialPage
+ * Data handling and logging functions for Kol-Sherut links and rules
  */
 class KolsherutLinks {
+
+	/** @var LoggerInterface */
+	private static LoggerInterface $logger;
+
+	/**
+	 * Utility to maintain static logger
+	 * @return LoggerInterface
+	 */
+	public static function getLogger() {
+		if ( empty( self::$logger ) ) {
+			self::$logger = LoggerFactory::getInstance( 'KolsherutLinks' );
+		}
+		return self::$logger;
+	}
 
 	/**
 	 * @param int $linkId Link ID
@@ -25,6 +38,32 @@ class KolsherutLinks {
 			"links.link_id={$linkId}",
 			__METHOD__
 		)->fetchRow();
+	}
+
+	/**
+	 * @param int $pageId Page ID
+	 * @return array
+	 */
+	public static function getLinksByPageId( $pageId ) {
+		$links = [];
+		$dbw = wfGetDB( DB_PRIMARY );
+		$res = $dbw->select(
+			[
+				'assignments' => 'kolsherutlinks_assignments',
+				'links' => 'kolsherutlinks_links',
+			],
+			[ 'links.link_id', 'links.url', 'links.text' ],
+			"assignments.page_id={$pageId}",
+			__METHOD__,
+			[],
+			[
+				'links' => [ 'INNER JOIN', 'links.link_id=assignments.link_id' ],
+			],
+		);
+		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
+			$links[ $row['link_id'] ] = $row;
+		}
+		return $links;
 	}
 
 	/**
@@ -153,7 +192,7 @@ class KolsherutLinks {
 	 */
 	public static function saveLinkDetails( $data ) {
 		$dbw = wfGetDB( DB_PRIMARY );
-		//@TODO: sanitize url and text
+		// @TODO: sanitize url and text
 		if ( !empty( $data['link_id'] ) ) {
 			// Update existing link.
 			$linkId = intval( $data['link_id'] );
@@ -203,7 +242,7 @@ class KolsherutLinks {
 	 */
 	public static function insertRule( $data ) {
 		$dbw = wfGetDB( DB_PRIMARY );
-		//@TODO: sanitize data
+		// @TODO: sanitize data
 		return $dbw->insert(
 			'kolsherutlinks_rules',
 			$data,
@@ -245,6 +284,17 @@ class KolsherutLinks {
 	 */
 	public static function reassignPagesLinks() {
 		$dbw = wfGetDB( DB_PRIMARY );
+		// Gather all page IDs currently with links assigned. We will clear their file caches at the end.
+		$pageIdsAffacted = [];
+		$res = $dbw->select(
+			[ 'assignments' => 'kolsherutlinks_assignments' ],
+			[ 'assignments.page_id' ],
+			'',
+			__METHOD__,
+		);
+		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
+			$pageIdsAffacted[ $row['page_id'] ] = $row['page_id'];
+		}
 		// Clear the assignments table. We'll rebuild it.
 		$dbw->delete( 'kolsherutlinks_assignments', [ '1=1' ] );
 		// Query all pages matching current rules.
@@ -284,35 +334,49 @@ class KolsherutLinks {
 		);
 		// Iterate over matching rules to select page link assignments.
 		$assignments = [];
-		$page_id = 0;
+		$pageId = 0;
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			if ( $row['page_id'] != $page_id ) {
+			if ( $row['page_id'] != $pageId ) {
 				// Starting now on rules for a new page.
-				$page_id = $row['page_id'];
-				$link_ids_assigned = [];
-				$fallback_assigned = false;
+				$pageId = $row['page_id'];
+				$linkIdsAssigned = [];
+				$fallbackAssigned = false;
 			}
 			// Maximum of two assignments per page, or only one if it's a fallback.
-			if ( count( $link_ids_assigned ) === ( $fallback_assigned ? 1 : 2 ) ) {
+			if ( count( $linkIdsAssigned ) === ( $fallbackAssigned ? 1 : 2 ) ) {
 				continue;
 			}
 			// Don't assign a fallback if a non-fallback rule matched.
-			if ( $row['fallback'] && !empty( $link_ids_assigned ) ) {
+			if ( $row['fallback'] && !empty( $linkIdsAssigned ) ) {
 				continue;
 			}
 			// Don't assign the same link twice to the same page.
-			if ( in_array( $row['link_id'], $link_ids_assigned ) ) {
+			if ( in_array( $row['link_id'], $linkIdsAssigned ) ) {
 				continue;
 			}
 			// Assign this rule's link to the page.
 			$assignments[] = [
-				'page_id' => $page_id,
+				'page_id' => $pageId,
 				'link_id' => $row['link_id'],
 			];
-			$link_ids_assigned[] = $row['link_id'];
-			$fallback_assigned = $row['fallback'];
+			$linkIdsAssigned[] = $row['link_id'];
+			$fallbackAssigned = $row['fallback'];
+			if ( !isset( $pageIdsAffacted[$pageId] ) ) {
+				$pageIdsAffacted[ $pageId ] = $pageId;
+			}
 		}
 		// Insert the assignments.
-		return $dbw->insert( 'kolsherutlinks_assignments', $assignments, __METHOD__ );
+		$res = $dbw->insert( 'kolsherutlinks_assignments', $assignments, __METHOD__ );
+		// Clear cached versions of all impacted pages.
+		if ( !empty( $pageIdsAffacted ) ) {
+			$pageTitles = $dbw->selectFieldValues(
+				'page',
+				'page_title',
+				[ 'page_id' => array_values( $pageIdsAffacted ) ],
+				__METHOD__,
+			);
+			PurgeJobUtils::invalidatePages( $dbw, NS_MAIN, $pageTitles );
+		}
+		return $res;
 	}
 }

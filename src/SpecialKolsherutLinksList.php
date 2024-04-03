@@ -2,20 +2,21 @@
 
 namespace MediaWiki\Extension\KolsherutLinks;
 
-use MediaWiki\Logger\LoggerFactory;
+use SpecialPage;
+use Title;
 
 /**
  * Filterable list view of Kol Sherut links and display rules.
  *
  * @ingroup SpecialPage
  */
-class SpecialKolsherutLinksList extends \SpecialPage {
+class SpecialKolsherutLinksList extends SpecialPage {
+
 	/**
 	 * @inheritDoc
 	 */
 	public function __construct() {
 		parent::__construct( 'KolsherutLinksList' );
-		$this->logger = LoggerFactory::getInstance( 'KolsherutLinks' );
 	}
 
 	/**
@@ -80,7 +81,7 @@ class SpecialKolsherutLinksList extends \SpecialPage {
 				'category_id_4' => 'cat4_title',
 			] as $idField => $nameField ) {
 				if ( !empty( $row[$idField] ) ) {
-					$catTitle = \Title::makeTitle( NS_CATEGORY, $row[$nameField] );
+					$catTitle = Title::makeTitle( NS_CATEGORY, $row[$nameField] );
 					$links_categories[ $row['link_id'] ][ $row[$idField] ] = $catTitle->getBaseText();
 				}
 			}
@@ -105,7 +106,7 @@ class SpecialKolsherutLinksList extends \SpecialPage {
 		);
 
 		// Provide link to add new link.
-		$detailsPage = \SpecialPage::getTitleFor( 'KolsherutLinksDetails' );
+		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksDetails' );
 		$addUrl = $detailsPage->getLocalURL( [ 'op' => 'create' ] );
 		$output->addHTML( '
 			<div class="ksl-links-add">
@@ -120,6 +121,7 @@ class SpecialKolsherutLinksList extends \SpecialPage {
 			<table class="mw-datatable kolsherut-links">
 				<thead>
 					<tr>
+						<th>ID</th>
 						<th>' . $this->msg( 'kolsherutlinks-list-header-url' ) . '</th>
 						<th>' . $this->msg( 'kolsherutlinks-list-header-text' ) . '</th>
 						<th>' . $this->msg( 'kolsherutlinks-list-header-pagecount' ) . '</th>
@@ -129,6 +131,7 @@ class SpecialKolsherutLinksList extends \SpecialPage {
 				</thead>
 				<tfoot>
 					<tr>
+						<th>ID</th>
 						<th>' . $this->msg( 'kolsherutlinks-list-header-url' ) . '</th>
 						<th>' . $this->msg( 'kolsherutlinks-list-header-text' ) . '</th>
 						<th>' . $this->msg( 'kolsherutlinks-list-header-pagecount' ) . '</th>
@@ -150,6 +153,7 @@ class SpecialKolsherutLinksList extends \SpecialPage {
 			$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' );
 			$output->addHTML(
 				'<tr>'
+				. '<td>' . $link_id . '</td>'
 				. '<td><a href="' . $detailsUrl . '">' . $row['url'] . '</a></td>'
 				. '<td>' . $row['text'] . '</td>'
 				. '<td>' . $row['pagecount'] . '</td>'

@@ -13,9 +13,13 @@
     "MediaWiki\\Extension\\KolsherutLinks\\": "src/"
   },
   "config": {
-    "KolsherutLinksEnableFoo": {
-      "description": "Enable the Foo feature.",
-      "value": true
+    "KolsherutLinksPlacement": {
+      "description": "Rules for links placement: map each article type to 'top', 'bottom', or a regular expression.",
+      "value": {
+				"default": "$1\\n==[^\\n]+==\\s*\\n",
+				"sampleTop": "top",
+				"sampleBottom": "bottom"
+			}
     }
   },
   "HookHandlers": {
@@ -24,15 +28,16 @@
     }
   },
   "Hooks": {
-    "ParserAfterParse": "KolsherutLinksHooks",
     "ParserFirstCallInit": "KolsherutLinksHooks",
+		"ParserBeforeInternalParse": "KolsherutLinksHooks",
     "LoadExtensionSchemaUpdates": "KolsherutLinksHooks"
   },
   "MessagesDirs": {
     "KolsherutLinks": ["i18n"]
   },
 	"ExtensionMessagesFiles": {
-		"KolsherutLinksAliases": "KolsherutLinks.i18n.alias.php"
+		"KolsherutLinksAliases": "KolsherutLinks.i18n.alias.php",
+		"KolsherutLinksMagic": "KolsherutLinks.i18n.magic.php"
 	},
   "SpecialPages": {
     "KolsherutLinksList": "MediaWiki\\Extension\\KolsherutLinks\\SpecialKolsherutLinksList",
@@ -70,5 +75,5 @@
 			"styles": ["jquery.tablesorter.css"]
 		}
 	},
-  "manifest_version": 2
+	"manifest_version": 2
 }

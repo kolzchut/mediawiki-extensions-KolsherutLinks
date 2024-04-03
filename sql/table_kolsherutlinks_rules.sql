@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS /*_*/kolsherutlinks_rules (
 	category_id_4 INTEGER UNSIGNED,
 	priority INTEGER DEFAULT 0,
 
-	FOREIGN KEY (link_id) REFERENCES /*_*/kolsherutlinks_links(link_id) ON DELETE CASCADE,
-	FOREIGN KEY (page_id) REFERENCES /*_*/page(page_id) ON DELETE CASCADE
+	FOREIGN KEY (link_id) REFERENCES /*_*/kolsherutlinks_links(link_id),
+	FOREIGN KEY (page_id) REFERENCES /*_*/page(page_id)
 ) /*$wgDBTableOptions*/;
 
 CREATE INDEX /*i*/page_id ON /*_*/kolsherutlinks_rules (page_id);
