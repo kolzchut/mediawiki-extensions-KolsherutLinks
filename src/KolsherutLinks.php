@@ -2,7 +2,9 @@
 
 namespace MediaWiki\Extension\KolsherutLinks;
 
+use ExtensionRegistry;
 use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
 use Psr\Log\LoggerInterface;
 use PurgeJobUtils;
 use Title;
@@ -333,6 +335,8 @@ class KolsherutLinks {
 				ORDER BY page_id ASC, fallback ASC, priority DESC;"
 		);
 		// Iterate over matching rules to select page link assignments.
+		$isArticleTypeExtensionLoaded = ExtensionRegistry::getInstance()->isLoaded( 'ArticleType' );
+		$excludedArticleTypes = self::getExcludedArticleTypes();
 		$assignments = [];
 		$pageId = 0;
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
@@ -353,6 +357,15 @@ class KolsherutLinks {
 			// Don't assign the same link twice to the same page.
 			if ( in_array( $row['link_id'], $linkIdsAssigned ) ) {
 				continue;
+			}
+			// Don't assign any links to an excluded ArticleType
+			if ( $isArticleTypeExtensionLoaded ) {
+				$articleType = \MediaWiki\Extension\ArticleType\ArticleType::getArticleType(
+					Title::newFromID( $row['page_id'] )
+				);
+				if ( !empty( $articleType ) && in_array( $articleType, $excludedArticleTypes ) ) {
+					continue;
+				}
 			}
 			// Assign this rule's link to the page.
 			$assignments[] = [
@@ -378,5 +391,17 @@ class KolsherutLinks {
 			PurgeJobUtils::invalidatePages( $dbw, NS_MAIN, $pageTitles );
 		}
 		return $res;
+	}
+
+	/**
+	 * @return array $excludedArticleTypes
+	 */
+	public static function getExcludedArticleTypes() {
+		static $excludedArticleTypes;
+		if ( !isset( $excludedArticleTypes ) ) {
+			$config = MediaWikiServices::getInstance()->getMainConfig()->get( 'KolsherutLinksExcludedArticleTypes' );
+			$excludedArticleTypes = !empty( $config ) ? $config : [];
+		}
+		return $excludedArticleTypes;
 	}
 }

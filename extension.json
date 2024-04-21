@@ -20,7 +20,11 @@
 				"sampleTop": "top",
 				"sampleBottom": "bottom"
 			}
-    }
+    },
+		"KolsherutLinksExcludedArticleTypes": {
+			"description": "Article types that will never receive Kol-Sherut link embeddings.",
+			"value": []
+		}
   },
   "HookHandlers": {
     "KolsherutLinksHooks": {

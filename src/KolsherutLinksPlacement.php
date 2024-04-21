@@ -3,7 +3,6 @@
 namespace MediaWiki\Extension\KolsherutLinks;
 
 use ExtensionRegistry;
-use MediaWiki\Extension\ArticleType\ArticleType;
 use MediaWiki\MediaWikiServices;
 use Parser;
 use TemplateParser;
@@ -42,9 +41,8 @@ class KolsherutLinksPlacement {
 			$position = 'bottom';
 			// Determine placement position by ArticleType.
 			$config = MediaWikiServices::getInstance()->getMainConfig()->get( 'KolsherutLinksPlacement' );
-			$logger->info( '$config: ' . print_r( $config, true ) );
 			if ( ExtensionRegistry::getInstance()->isLoaded( 'ArticleType' ) ) {
-				$articleType = ArticleType::getArticleType( $parser->getTitle() );
+				$articleType = \MediaWiki\Extension\ArticleType\ArticleType::getArticleType( $parser->getTitle() );
 				$logger->info( '$articleType: ' . print_r( $articleType, true ) );
 				$position = empty( $config[$articleType] ) ?
 					( empty( $config['default'] ) ? 'bottom' : $config['default'] )
@@ -52,7 +50,6 @@ class KolsherutLinksPlacement {
 			} elseif ( !empty( $config['default'] ) ) {
 				$position = $config['default'];
 			}
-			$logger->info( '$position: ' . $position );
 			// Place the links tag.
 			switch ( $position ) {
 				case 'top':

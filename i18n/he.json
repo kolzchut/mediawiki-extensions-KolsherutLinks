@@ -48,6 +48,7 @@
 	"kolsherutlinks-details-assignments-empty": "כעת הקישור הזה לא משובץ לשום ערך באתר",
 	"kolsherutlinks-details-error-not-found": "נכשלה שאילתה לקישור עם המזהה $1",
 	"kolsherutlinks-details-error-page-not-found": "אין ערך עם הכותרת המוזנת",
+	"kolsherutlinks-details-error-excluded-article-type": "לדף הנבחר יש סוג ערך '$1' שמוחרג מקישורים לכל שרות",
 	"kolsherutlinks-details-error-category-not-entered": "יש להזין לפחות קטגוריה אחת או תחום תוכן",
 	"kolsherutlinks-details-error-category-not-found": "אין קטגוריה בשם \"$1\"",
 	"kolsherutlinks-details-error-failed-save": "תקלה בשמירת פרטי הקישור",

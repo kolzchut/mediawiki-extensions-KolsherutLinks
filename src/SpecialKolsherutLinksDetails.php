@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\KolsherutLinks;
 
 use Category;
+use ExtensionRegistry;
 use HTMLForm;
 use MWException;
 use SpecialPage;
@@ -405,6 +406,15 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		if ( !$title->exists() ) {
 			// Title not found.
 			return 'kolsherutlinks-details-error-page-not-found';
+		}
+
+		// Don't allow page rule on excluded ArticleType
+		if ( ExtensionRegistry::getInstance()->isLoaded( 'ArticleType' ) ) {
+			$articleType = \MediaWiki\Extension\ArticleType\ArticleType::getArticleType( $title );
+			if ( !empty( $articleType ) && in_array( $articleType, KolsherutLinks::getExcludedArticleTypes() ) ) {
+				return [ [ 'kolsherutlinks-details-error-excluded-article-type', $articleType ] ];
+			}
+
 		}
 
 		// Insert new rule

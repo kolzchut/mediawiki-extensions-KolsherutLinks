@@ -49,6 +49,7 @@
 	"kolsherutlinks-details-assignments-empty": "This link is currently not assigned to any article.",
 	"kolsherutlinks-details-error-not-found": "Failed to query link with ID $1",
 	"kolsherutlinks-details-error-page-not-found": "Failed to find page with the given title",
+	"kolsherutlinks-details-error-excluded-article-type": "The page's '$1' article type is excluded for Kolsherut links.",
 	"kolsherutlinks-details-error-category-not-entered": "Please enter at least one category or content area",
 	"kolsherutlinks-details-error-category-not-found": "Failed to find category named \"$1\"",
 	"kolsherutlinks-details-error-failed-save": "Failed to save link details",
