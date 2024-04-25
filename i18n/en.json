@@ -4,6 +4,7 @@
   },
   "kolsherutlinks-desc": "System to manage the insertion of Kol Sherut links into Kol Zchut content.",
 	"kolsherutlinks-name": "Kol Sherut Links",
+	"action-manage-kolsherut-links": "Kol Sherut links management",
 
 	"log-name-kolsherutlinks": "Kol Sherut links log",
 	"log-description-kolsherutlinks": "Logging Kol Sherut links activity.",

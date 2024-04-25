@@ -22,6 +22,7 @@ namespace MediaWiki\Extension\KolsherutLinks;
 class Hooks implements
 	\MediaWiki\Hook\ParserBeforeInternalParseHook,
 	\MediaWiki\Hook\ParserFirstCallInitHook,
+	\MediaWiki\Permissions\Hook\UserGetAllRightsHook,
 	\MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook
 {
 
@@ -43,6 +44,16 @@ class Hooks implements
 	 */
 	public function onParserBeforeInternalParse( $parser, &$text, $stripState ) {
 		return KolsherutLinksPlacement::onParserBeforeInternalParse( $parser, $text, $stripState );
+	}
+
+	/**
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/UserGetAllRights
+	 * @param string[] &$rights Array of rights, which may be added to
+	 * @return bool|void True or no return value to continue or false to abort
+	 */
+	public function onUserGetAllRights( &$rights ) {
+		// Add user right for Kolsherut links management
+		$rights[] = 'manage-kolsherut-links';
 	}
 
 	/**

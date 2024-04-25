@@ -2,6 +2,8 @@
 
 namespace MediaWiki\Extension\KolsherutLinks;
 
+use MediaWiki\MediaWikiServices;
+use PermissionsError;
 use SpecialPage;
 use Title;
 
@@ -33,6 +35,14 @@ class SpecialKolsherutLinksList extends SpecialPage {
 	public function execute( $par ) {
 		$output = $this->getOutput();
 		$this->setHeaders();
+
+		// Does the user have access?
+		$hasAccess = MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
+			$this->getUser(), 'manage-kolsherut-links'
+		);
+		if ( !$hasAccess ) {
+			throw new PermissionsError( 'manage-kolsherut-links' );
+		}
 
 		// Query all rules to pull their categories.
 		$dbw = wfGetDB( DB_PRIMARY );

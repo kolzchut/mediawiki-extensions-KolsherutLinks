@@ -6,7 +6,9 @@ use Category;
 use ExtensionRegistry;
 use HTMLForm;
 use ManualLogEntry;
+use MediaWiki\MediaWikiServices;
 use MWException;
+use PermissionsError;
 use SpecialPage;
 use Title;
 use WikiPage;
@@ -42,6 +44,14 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$postValues = $request->getPostValues();
 		$queryParams = $request->getQueryValues();
 		$output = $this->getOutput();
+
+		// Does the user have access?
+		$hasAccess = MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
+			$this->getUser(), 'manage-kolsherut-links'
+		);
+		if ( !$hasAccess ) {
+			throw new PermissionsError( 'manage-kolsherut-links' );
+		}
 
 		// Process and build page by operation.
 		$op = !empty( $postValues['wpkslOp'] ) ? $postValues['wpkslOp'] :

@@ -13,6 +13,7 @@ or page titles.
 2. Run `composer update` in MediaWiki's installation directory.
 3. Add `wfLoadExtension( 'KolsherutLinks' );` to `LocalSettings.php` or your custom PHP config file.
 4. Run `php update.php` in MediaWiki's `maintenance` directory.
+5. Add the `manage-kolsherut-links` right to the desired group(s) in `$wgGroupPermissions`.
 
 ## Configuration
 
