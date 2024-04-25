@@ -10,18 +10,9 @@ or page titles.
 ## Installation
 
 1. Download the extension
-2. Add the extension's `composer.json` to `composer.local.json` in MediaWiki's installation directory:
-   ```json
-   "extra": {
-   	"merge-plugin": {
-   		"include": [
-   			"extensions/KolsherutLinks/composer.json"
-   		]
-   }
-   ```
-3. Run `composer update` in MediaWiki's installation directory.
-4. Add `wfLoadExtension( 'KolsherutLinks' );` to `LocalSettings.php` or your custom PHP config file.
-5. Run `php update.php` in MediaWiki's `maintenance` directory.
+2. Run `composer update` in MediaWiki's installation directory.
+3. Add `wfLoadExtension( 'KolsherutLinks' );` to `LocalSettings.php` or your custom PHP config file.
+4. Run `php update.php` in MediaWiki's `maintenance` directory.
 
 ## Configuration
 
@@ -36,12 +27,23 @@ $wgKolsherutLinksPlacement = [
 	'Article Type 1' => 'top',
 	'Article Type 2' => 'bottom',
 	'Article Type 3' => 'What to match before the link\\s+$1\\s+What to match after.',
+	'default' => 'top', /* catch-all for remaining article types */
 ];
 ```
 
 Note that article type differentiation requires the WRArticleType extension, otherwise
 the 'default' placement will be used for all articles that don't contain the
 `{{#kolsherut_links:}}` tag.
+
+Optionally add `$wgKolsherutLinksExcludedArticleTypes` to `LocalSettings.php` to specify
+article types whose pages will not receive embedded links even if they otherwise match
+defined Kolsherut Links rules.
+
+```php
+$wgKolsherutLinksExcludedArticleTypes = [
+	'Excluded Article Type 1', 'Excluded Article Type 2'
+];
+```
 
 ## Explicit Placement of Links
 
