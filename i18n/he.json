@@ -3,6 +3,16 @@
     "authors": ["Joel R. ([http://www.kolzchut.org.il Kol-Zchut])"]
   },
   "kolsherutlinks-desc": "מערכת ניהול על תצוגת קישורים לכל שרות בתוכן אתר כל-זכות",
+	"kolsherutlinks-name": "קישורים לכל שרות",
+
+	"log-name-kolsherutlinks": "יומן קישורים לכל שרות",
+	"log-description-kolsherutlinks": "יומן לפעילויות בקישורים לכל שרות",
+	"kolsherutlinks-log-link-save": "נשמר קישור: $1",
+	"kolsherutlinks-log-link-delete": "נמחק קישור: $1",
+	"kolsherutlinks-log-page-rule-save": "נשמר כלל ערך על דף '$2' לקישור $1",
+	"kolsherutlinks-log-category-rule-save": "נשמר כלל קטגוריות לקישור $1: $2",
+	"kolsherutlinks-log-page-rule-delete": "נמחק כלל ערך על דף '$2' לקישור $1",
+	"kolsherutlinks-log-category-rule-delete": "נמחק כלל קטגוריות לקישור $1: $2",
 
 	"kolsherutlinks-list-desc": "קישורים לכל שרות",
 	"kolsherutlinks-list-header-url": "URL",

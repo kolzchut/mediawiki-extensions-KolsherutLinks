@@ -2,5 +2,8 @@
   "@metadata": {
     "authors": ["Joel R. ([http://www.kolzchut.org.il Kol-Zchut])"]
   },
-  "kolsherutlinks-desc": "{{desc|name=KolsherutLinks|url=https://github.com/kolzchut/mediawiki-extensions-KolsherutLinks}}"
+  "kolsherutlinks-desc": "{{desc|name=KolsherutLinks|url=https://github.com/kolzchut/mediawiki-extensions-KolsherutLinks}}",
+
+	"log-name-kolsherutlinks": "The Special:Log log name that appears in the drop-down on the Special:Log page",
+	"log-description-kolsherutlinks": "The Special:Log description that appears on the Special:Log page when you filter logs on this specific log name"
 }

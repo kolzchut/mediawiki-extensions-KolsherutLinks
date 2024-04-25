@@ -29,7 +29,6 @@ class KolsherutLinksPlacement {
 			// Are any links assigned to this page?
 			$pageId = $parser->getTitle()->getArticleID();
 			$links = KolsherutLinks::getLinksByPageId( $pageId );
-			$logger = KolsherutLinks::getLogger();
 			if ( empty( $links ) ) {
 				return true;
 			}
@@ -43,7 +42,6 @@ class KolsherutLinksPlacement {
 			$config = MediaWikiServices::getInstance()->getMainConfig()->get( 'KolsherutLinksPlacement' );
 			if ( ExtensionRegistry::getInstance()->isLoaded( 'ArticleType' ) ) {
 				$articleType = \MediaWiki\Extension\ArticleType\ArticleType::getArticleType( $parser->getTitle() );
-				$logger->info( '$articleType: ' . print_r( $articleType, true ) );
 				$position = empty( $config[$articleType] ) ?
 					( empty( $config['default'] ) ? 'bottom' : $config['default'] )
 					: $config[$articleType];

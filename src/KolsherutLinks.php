@@ -93,6 +93,33 @@ class KolsherutLinks {
 	}
 
 	/**
+	 * @param int $ruleId Link ID
+	 * @return array|bool
+	 */
+	public static function getRule( $ruleId ) {
+		$dbw = wfGetDB( DB_PRIMARY );
+		return $dbw->select(
+			[
+				'rules' => 'kolsherutlinks_rules',
+				'links' => 'kolsherutlinks_links',
+			],
+			[
+				'rules.link_id', 'rules.fallback', 'rules.page_id', 'rules.content_area_id', 'rules.category_id_1',
+				'rules.category_id_2', 'rules.category_id_3', 'rules.category_id_4', 'rules.priority',
+				'links.url', 'links.text'
+			],
+			[
+				"rules.rule_id={$ruleId}",
+			],
+			__METHOD__,
+			[],
+			[
+				'page' => [ 'LEFT JOIN', 'links.link_id=rules.link_id' ],
+			],
+		)->fetchRow();
+	}
+
+	/**
 	 * @param int $linkId Link ID
 	 * @return \IResultWrapper
 	 */

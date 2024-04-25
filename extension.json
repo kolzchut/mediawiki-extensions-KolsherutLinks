@@ -36,7 +36,11 @@
 		"ParserBeforeInternalParse": "KolsherutLinksHooks",
     "LoadExtensionSchemaUpdates": "KolsherutLinksHooks"
   },
-  "MessagesDirs": {
+	"LogTypes": [ "kolsherutlinks" ],
+	"LogNames": {
+			"kolsherutlinks": "kolsherutlinks-name"
+	},
+	"MessagesDirs": {
     "KolsherutLinks": ["i18n"]
   },
 	"ExtensionMessagesFiles": {
