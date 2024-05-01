@@ -271,14 +271,17 @@ class KolsherutLinks {
 	public static function getPossibleAssignments() {
 		$dbw = wfGetDB( DB_PRIMARY );
 		return $dbw->query(
-			"SELECT page_rules.page_id, page_rules.rule_id, page_rules.link_id, page_rules.fallback, page_rules.priority
+			"SELECT page_rules.page_id, page_rules.rule_id, page_rules.link_id, page_rules.fallback,
+						page_rules.priority, page_links.url
 					FROM kolsherutlinks_rules AS page_rules
+					INNER JOIN kolsherutlinks_links AS page_links ON page_links.link_id=page_rules.link_id
 					WHERE page_rules.page_id IS NOT NULL
 					GROUP BY page_rules.page_id
 				UNION
 				SELECT IFNULL(cl1.cl_from, pp.pp_page) AS page_id, cat_rules.rule_id, cat_rules.link_id, 
-						cat_rules.fallback, cat_rules.priority
+						cat_rules.fallback, cat_rules.priority, cat_links.url
 					FROM kolsherutlinks_rules AS cat_rules
+					INNER JOIN kolsherutlinks_links AS cat_links ON cat_links.link_id=cat_rules.link_id
 					LEFT JOIN category AS ca ON ca.cat_id=cat_rules.content_area_id
 					LEFT JOIN category AS cat1 ON cat1.cat_id=cat_rules.category_id_1
 					LEFT JOIN category AS cat2 ON cat2.cat_id=cat_rules.category_id_2
@@ -428,19 +431,19 @@ class KolsherutLinks {
 			if ( $row['page_id'] != $pageId ) {
 				// Starting now on rules for a new page.
 				$pageId = $row['page_id'];
-				$linkIdsAssigned = [];
+				$linkUrlsAssigned = [];
 				$fallbackAssigned = false;
 			}
 			// Maximum of two assignments per page, or only one if it's a fallback.
-			if ( count( $linkIdsAssigned ) === ( $fallbackAssigned ? 1 : 2 ) ) {
+			if ( count( $linkUrlsAssigned ) === ( $fallbackAssigned ? 1 : 2 ) ) {
 				continue;
 			}
 			// Don't assign a fallback if a non-fallback rule matched.
-			if ( $row['fallback'] && !empty( $linkIdsAssigned ) ) {
+			if ( $row['fallback'] && !empty( $linkUrlsAssigned ) ) {
 				continue;
 			}
 			// Don't assign the same link twice to the same page.
-			if ( in_array( $row['link_id'], $linkIdsAssigned ) ) {
+			if ( in_array( $row['url'], $linkUrlsAssigned ) ) {
 				continue;
 			}
 			// Don't assign any links to an excluded ArticleType
@@ -457,7 +460,7 @@ class KolsherutLinks {
 				'page_id' => $pageId,
 				'link_id' => $row['link_id'],
 			];
-			$linkIdsAssigned[] = $row['link_id'];
+			$linkUrlsAssigned[] = $row['url'];
 			$fallbackAssigned = $row['fallback'];
 			if ( !isset( $pageIdsAffacted[$pageId] ) ) {
 				$pageIdsAffacted[ $pageId ] = $pageId;
