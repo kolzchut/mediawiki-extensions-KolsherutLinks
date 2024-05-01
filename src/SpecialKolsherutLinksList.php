@@ -44,6 +44,13 @@ class SpecialKolsherutLinksList extends SpecialPage {
 			throw new PermissionsError( 'manage-kolsherut-links' );
 		}
 
+		// Link back to list page
+		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksRules' );
+		$output->addHTML(
+			'<p class="ksl-list-link"><a href="' . $listPage->getLocalURL() . '">'
+			. $this->msg( 'kolsherutlinks-details-all-rules-link' )->text() . '</a></p>'
+		);
+
 		// Query all rules to pull their categories.
 		$dbw = wfGetDB( DB_PRIMARY );
 		$links_categories = [];
@@ -128,7 +135,7 @@ class SpecialKolsherutLinksList extends SpecialPage {
 		$output->allowClickjacking();
 		$output->addModules( [ 'ext.KolsherutLinks.list', 'ext.KolsherutLinks.confirmation' ] );
 		$output->addHTML( '
-			<table class="mw-datatable kolsherut-links">
+			<table class="mw-datatable kolsherut-links-links">
 				<thead>
 					<tr>
 						<th>ID</th>

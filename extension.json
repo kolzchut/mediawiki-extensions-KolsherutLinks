@@ -50,7 +50,8 @@
 	},
   "SpecialPages": {
     "KolsherutLinksList": "MediaWiki\\Extension\\KolsherutLinks\\SpecialKolsherutLinksList",
-    "KolsherutLinksDetails": "MediaWiki\\Extension\\KolsherutLinks\\SpecialKolsherutLinksDetails"
+    "KolsherutLinksDetails": "MediaWiki\\Extension\\KolsherutLinks\\SpecialKolsherutLinksDetails",
+    "KolsherutLinksRules": "MediaWiki\\Extension\\KolsherutLinks\\SpecialKolsherutLinksRules"
   },
 	"ResourceModules": {
 		"ext.KolsherutLinks.list": {

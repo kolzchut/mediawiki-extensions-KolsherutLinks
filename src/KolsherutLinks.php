@@ -120,6 +120,56 @@ class KolsherutLinks {
 	}
 
 	/**
+	 * @return \IResultWrapper
+	 */
+	public static function getAllRules() {
+		$dbw = wfGetDB( DB_PRIMARY );
+		return $dbw->select(
+			[
+				'rules' => 'kolsherutlinks_rules',
+				'links' => 'kolsherutlinks_links',
+				'content_area' => 'category',
+				'category1' => 'category',
+				'category2' => 'category',
+				'category3' => 'category',
+				'category4' => 'category',
+			],
+			[
+				'rule_id' => 'rules.rule_id',
+				'link_id' => 'rules.link_id',
+				'fallback' => 'rules.fallback',
+				'page_id' => 'rules.page_id',
+				'content_area_id' => 'rules.content_area_id',
+				'category_id_1' => 'rules.category_id_1',
+				'category_id_2' => 'rules.category_id_2',
+				'category_id_3' => 'rules.category_id_3',
+				'category_id_4' => 'rules.category_id_4',
+				'priority' => 'rules.priority',
+				'link_url' => 'links.url',
+				'link_text' => 'links.text',
+				'content_area_title' => 'content_area.cat_title',
+				'cat1_title' => 'category1.cat_title',
+				'cat2_title' => 'category2.cat_title',
+				'cat3_title' => 'category3.cat_title',
+				'cat4_title' => 'category4.cat_title',
+			],
+			'',
+			__METHOD__,
+			[
+				'ORDER BY' => 'rules.page_id ASC, rules.priority DESC',
+			],
+			[
+				'links' => [ 'LEFT JOIN', 'links.link_id=rules.link_id' ],
+				'content_area' => [ 'LEFT JOIN', 'content_area.cat_id=rules.content_area_id' ],
+				'category1' => [ 'LEFT JOIN', 'category1.cat_id=rules.category_id_1' ],
+				'category2' => [ 'LEFT JOIN', 'category2.cat_id=rules.category_id_2' ],
+				'category3' => [ 'LEFT JOIN', 'category3.cat_id=rules.category_id_3' ],
+				'category4' => [ 'LEFT JOIN', 'category4.cat_id=rules.category_id_4' ],
+			],
+		);
+	}
+
+	/**
 	 * @param int $linkId Link ID
 	 * @return \IResultWrapper
 	 */
@@ -169,18 +219,18 @@ class KolsherutLinks {
 	}
 
 	/**
-	 * @param int $linkId Link ID
+	 * @param int $linkId (optional) Link ID
 	 * @return \IResultWrapper
 	 */
-	public static function getPageAssignmentsByLink( $linkId ) {
+	public static function getPageAssignments( $linkId = false ) {
 		$dbw = wfGetDB( DB_PRIMARY );
 		return $dbw->select(
 			[
 				'assignments' => 'kolsherutlinks_assignments',
 				'pages' => 'page',
 			],
-			[ 'assignments.page_id', 'pages.page_title' ],
-			"assignments.link_id={$linkId}",
+			[ 'assignments.page_id', 'pages.page_title', 'assignments.link_id' ],
+			$linkId ? "assignments.link_id={$linkId}" : "1=1",
 			__METHOD__,
 			[ 'ORDER BY' => 'pages.page_title ASC' ],
 			[ 'pages' => [ 'INNER JOIN', 'pages.page_id=assignments.page_id' ] ]
@@ -212,6 +262,47 @@ class KolsherutLinks {
 			"page_props.pp_propname = 'ArticleContentArea' and pp_value <> ''",
 			__METHOD__,
 			[ 'GROUP BY' => 'pp_value', 'ORDER BY' => 'pp_value ASC' ],
+		);
+	}
+
+	/**
+	 * @return \IResultWrapper
+	 */
+	public static function getPossibleAssignments() {
+		$dbw = wfGetDB( DB_PRIMARY );
+		return $dbw->query(
+			"SELECT page_rules.page_id, page_rules.rule_id, page_rules.link_id, page_rules.fallback, page_rules.priority
+					FROM kolsherutlinks_rules AS page_rules
+					WHERE page_rules.page_id IS NOT NULL
+					GROUP BY page_rules.page_id
+				UNION
+				SELECT IFNULL(cl1.cl_from, pp.pp_page) AS page_id, cat_rules.rule_id, cat_rules.link_id, 
+						cat_rules.fallback, cat_rules.priority
+					FROM kolsherutlinks_rules AS cat_rules
+					LEFT JOIN category AS ca ON ca.cat_id=cat_rules.content_area_id
+					LEFT JOIN category AS cat1 ON cat1.cat_id=cat_rules.category_id_1
+					LEFT JOIN category AS cat2 ON cat2.cat_id=cat_rules.category_id_2
+					LEFT JOIN category AS cat3 ON cat3.cat_id=cat_rules.category_id_3
+					LEFT JOIN category AS cat4 ON cat4.cat_id=cat_rules.category_id_4
+					LEFT JOIN page_props AS pp ON (
+						ca.cat_id IS NOT NULL AND pp.pp_propname='ArticleContentArea' AND 
+						REPLACE(pp.pp_value, ' ', '_')=ca.cat_title
+					)
+					LEFT JOIN categorylinks AS cl1 ON (cat1.cat_id IS NOT NULL AND cl1.cl_to=cat1.cat_title)
+					LEFT JOIN categorylinks AS cl2 ON (cat2.cat_id IS NOT NULL AND cl2.cl_to=cat2.cat_title)
+					LEFT JOIN categorylinks AS cl3 ON (cat3.cat_id IS NOT NULL AND cl3.cl_to=cat3.cat_title)
+					LEFT JOIN categorylinks AS cl4 ON (cat4.cat_id IS NOT NULL AND cl4.cl_to=cat4.cat_title)
+					WHERE (cat_rules.content_area_id IS NOT NULL OR cat_rules.category_id_1 IS NOT NULL)
+						AND (cat_rules.content_area_id IS NULL OR pp.pp_page IS NOT NULL)
+						AND (cat_rules.category_id_1 IS NULL OR cl1.cl_from IS NOT NULL)
+						AND (
+							cat_rules.content_area_id IS NULL OR cat_rules.category_id_1 IS NULL OR
+							pp.pp_page=cl1.cl_from
+						)
+						AND (cat_rules.category_id_2 IS NULL OR cl2.cl_from=cl1.cl_from)
+						AND (cat_rules.category_id_3 IS NULL OR cl3.cl_from=cl1.cl_from)
+						AND (cat_rules.category_id_4 IS NULL OR cl4.cl_from=cl1.cl_from)
+				ORDER BY page_id ASC, fallback ASC, priority DESC;"
 		);
 	}
 
@@ -327,40 +418,7 @@ class KolsherutLinks {
 		// Clear the assignments table. We'll rebuild it.
 		$dbw->delete( 'kolsherutlinks_assignments', [ '1=1' ] );
 		// Query all pages matching current rules.
-		$res = $dbw->query(
-			"SELECT page_rules.page_id, page_rules.rule_id, page_rules.link_id, page_rules.fallback, page_rules.priority
-					FROM kolsherutlinks_rules AS page_rules
-					WHERE page_rules.page_id IS NOT NULL
-					GROUP BY page_rules.page_id
-				UNION
-				SELECT IFNULL(cl1.cl_from, pp.pp_page) AS page_id, cat_rules.rule_id, cat_rules.link_id, 
-						cat_rules.fallback, cat_rules.priority
-					FROM kolsherutlinks_rules AS cat_rules
-					LEFT JOIN category AS ca ON ca.cat_id=cat_rules.content_area_id
-					LEFT JOIN category AS cat1 ON cat1.cat_id=cat_rules.category_id_1
-					LEFT JOIN category AS cat2 ON cat2.cat_id=cat_rules.category_id_2
-					LEFT JOIN category AS cat3 ON cat3.cat_id=cat_rules.category_id_3
-					LEFT JOIN category AS cat4 ON cat4.cat_id=cat_rules.category_id_4
-					LEFT JOIN page_props AS pp ON (
-						ca.cat_id IS NOT NULL AND pp.pp_propname='ArticleContentArea' AND 
-						REPLACE(pp.pp_value, ' ', '_')=ca.cat_title
-					)
-					LEFT JOIN categorylinks AS cl1 ON (cat1.cat_id IS NOT NULL AND cl1.cl_to=cat1.cat_title)
-					LEFT JOIN categorylinks AS cl2 ON (cat2.cat_id IS NOT NULL AND cl2.cl_to=cat2.cat_title)
-					LEFT JOIN categorylinks AS cl3 ON (cat3.cat_id IS NOT NULL AND cl3.cl_to=cat3.cat_title)
-					LEFT JOIN categorylinks AS cl4 ON (cat4.cat_id IS NOT NULL AND cl4.cl_to=cat4.cat_title)
-					WHERE (cat_rules.content_area_id IS NOT NULL OR cat_rules.category_id_1 IS NOT NULL)
-						AND (cat_rules.content_area_id IS NULL OR pp.pp_page IS NOT NULL)
-						AND (cat_rules.category_id_1 IS NULL OR cl1.cl_from IS NOT NULL)
-						AND (
-							cat_rules.content_area_id IS NULL OR cat_rules.category_id_1 IS NULL OR
-							pp.pp_page=cl1.cl_from
-						)
-						AND (cat_rules.category_id_2 IS NULL OR cl2.cl_from=cl1.cl_from)
-						AND (cat_rules.category_id_3 IS NULL OR cl3.cl_from=cl1.cl_from)
-						AND (cat_rules.category_id_4 IS NULL OR cl4.cl_from=cl1.cl_from)
-				ORDER BY page_id ASC, fallback ASC, priority DESC;"
-		);
+		$res = self::getPossibleAssignments();
 		// Iterate over matching rules to select page link assignments.
 		$isArticleTypeExtensionLoaded = ExtensionRegistry::getInstance()->isLoaded( 'ArticleType' );
 		$excludedArticleTypes = self::getExcludedArticleTypes();

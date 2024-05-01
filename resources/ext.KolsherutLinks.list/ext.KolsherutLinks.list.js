@@ -1,9 +1,8 @@
 /* global window, document, mw, OO, $ */
 
 mw.loader.using( [ 'mediawiki.api', 'jquery.tablesorter.pager' ], function () {
-	var $table = $('table.kolsherut-links'),
-	// define pager options
-	pagerOptions = {
+	// Define pager options
+	var pagerOptions = {
 		// target the pager markup - see the HTML block below
 		container: $(".kolsherutlinks-list-pager"),
 		// output string - default is '{page}/{totalPages}';
@@ -20,9 +19,8 @@ mw.loader.using( [ 'mediawiki.api', 'jquery.tablesorter.pager' ], function () {
 		cssGoto: '.gotoPage'
 	};
 
-	// Initialize tablesorter
-	// ***********************
-	$table
+	// Initialize tablesorter and pager plugin
+	$('table.kolsherut-links-links')
 		.tablesorter({
 			theme: 'blue',
 			headerTemplate : '{content} {icon}', // new in v2.7. Needed to add the bootstrap icon!
@@ -30,9 +28,15 @@ mw.loader.using( [ 'mediawiki.api', 'jquery.tablesorter.pager' ], function () {
 			widgets: [/*'zebra',*/ 'columns', 'filter'],
 			headers: {5: {sorter: false}}
 		})
+		.tablesorterPager(pagerOptions);
 
-		// initialize the pager plugin
-		// ****************************
+	$('table.kolsherut-links-rules')
+		.tablesorter({
+			theme: 'blue',
+			headerTemplate : '{content} {icon}', // new in v2.7. Needed to add the bootstrap icon!
+			widthFixed: true,
+			widgets: ['columns', 'filter']
+		})
 		.tablesorterPager(pagerOptions);
 
 } );

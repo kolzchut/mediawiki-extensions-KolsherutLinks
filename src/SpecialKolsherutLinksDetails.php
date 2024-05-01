@@ -62,8 +62,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			case 'display':
 				if ( empty( $linkId ) ) {
 					// Can't display link without an ID. Redirect to list view.
-					$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
-					$output->redirect( $detailsPage->getLocalURL(), '303' );
+					$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
+					$output->redirect( $listPage->getLocalURL(), '303' );
 				} else {
 					$this->showDetailsPage( $linkId );
 					$output->addModules( 'ext.KolsherutLinks.confirmation' );
@@ -125,9 +125,9 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$output->addModules( 'ext.KolsherutLinks.details' );
 
 		// Link back to list page
-		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
+		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
 		$output->addHTML(
-			'<p class="ksl-details-list-link"><a href="' . $detailsPage->getLocalURL() . '">'
+			'<p class="ksl-list-link"><a href="' . $listPage->getLocalURL() . '">'
 			. $this->msg( 'kolsherutlinks-details-back-to-list' )->text() . '</a></p>'
 		);
 
@@ -268,7 +268,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Link assignments
 		$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-assignments' ) . "</h2>" );
-		$res = KolsherutLinks::getPageAssignmentsByLink( $linkId );
+		$res = KolsherutLinks::getPageAssignments( $linkId );
 		$listBody = '';
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$title = WikiPage::newFromID( $row['page_id'] )->getTitle();
@@ -659,8 +659,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Redirect to links list.
 		$output = $this->getOutput();
-		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
-		$output->redirect( $detailsPage->getLocalURL(), '303' );
+		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
+		$output->redirect( $listPage->getLocalURL(), '303' );
 	}
 
 	/**
