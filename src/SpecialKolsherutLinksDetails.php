@@ -269,16 +269,33 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		// Link assignments
 		$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-assignments' ) . "</h2>" );
 		$res = KolsherutLinks::getPageAssignments( $linkId );
+		$assignedPageIds = [];
 		$listBody = '';
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$title = WikiPage::newFromID( $row['page_id'] )->getTitle();
 			$listBody .= '<li><a href="' . $title->getLocalURL() . '">' . $title->getBaseText() . '</a></li>';
+			$assignedPageIds[ $row['page_id'] ] = $row['page_id'];
 		}
 		if ( !empty( $listBody ) ) {
 			$output->addHTML( '<ul class="ksl-link-assignments">' . $listBody . '</ul>' );
 		} else {
 			$output->addHTML( '<p class="ksl-link-assignments-empty">'
 				. $this->msg( 'kolsherutlinks-details-assignments-empty' )->text() . '</p>' );
+		}
+
+		// Link non-assignments
+		$res = KolsherutLinks::getPossibleAssignments( $linkId );
+		$listBody = '';
+		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
+			if ( !empty( $assignedPageIds[ $row['page_id'] ] ) ) {
+				continue;
+			}
+			$title = WikiPage::newFromID( $row['page_id'] )->getTitle();
+			$listBody .= '<li><a href="' . $title->getLocalURL() . '">' . $title->getBaseText() . '</a></li>';
+		}
+		if ( !empty( $listBody ) ) {
+			$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-nonassignments' ) . "</h2>" );
+			$output->addHTML( '<ul class="ksl-link-assignments">' . $listBody . '</ul>' );
 		}
 
 		// Delete link button

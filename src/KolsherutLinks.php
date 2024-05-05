@@ -266,16 +266,19 @@ class KolsherutLinks {
 	}
 
 	/**
+	 * @param int|null $linkId (optional) Limit to a single link, otherwise consider all links.
 	 * @return \IResultWrapper
 	 */
-	public static function getPossibleAssignments() {
+	public static function getPossibleAssignments( $linkId = false ) {
 		$dbw = wfGetDB( DB_PRIMARY );
+		$whereLinkPageRules = ( $linkId === false ) ? '' : "AND page_rules.link_id={$linkId}";
+		$whereLinkCategoryRules = ( $linkId === false ) ? '' : "AND cat_rules.link_id={$linkId}";
 		return $dbw->query(
 			"SELECT page_rules.page_id, page_rules.rule_id, page_rules.link_id, page_rules.fallback,
 						page_rules.priority, page_links.url
 					FROM kolsherutlinks_rules AS page_rules
 					INNER JOIN kolsherutlinks_links AS page_links ON page_links.link_id=page_rules.link_id
-					WHERE page_rules.page_id IS NOT NULL
+					WHERE page_rules.page_id IS NOT NULL {$whereLinkPageRules}
 					GROUP BY page_rules.page_id
 				UNION
 				SELECT IFNULL(cl1.cl_from, pp.pp_page) AS page_id, cat_rules.rule_id, cat_rules.link_id, 
@@ -305,6 +308,7 @@ class KolsherutLinks {
 						AND (cat_rules.category_id_2 IS NULL OR cl2.cl_from=cl1.cl_from)
 						AND (cat_rules.category_id_3 IS NULL OR cl3.cl_from=cl1.cl_from)
 						AND (cat_rules.category_id_4 IS NULL OR cl4.cl_from=cl1.cl_from)
+						{$whereLinkCategoryRules}
 				ORDER BY page_id ASC, fallback ASC, priority DESC;"
 		);
 	}
