@@ -379,7 +379,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		}
 
 		// Logging.
-		$this->logEntry( $this->msg( 'kolsherutlinks-log-link-save', [ $data['url'] ] ) );
+		$this->logEntry( $this->msg( 'kolsherutlinks-log-link-save', [ $data['url'] ] )->text() );
 
 		// Redirect to display link details.
 		$displayUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
@@ -461,7 +461,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		// Logging.
 		$details = KolsherutLinks::getLinkDetails( $linkId );
 		$this->logEntry(
-			$this->msg( 'kolsherutlinks-log-page-rule-save', [ $details['url'], $title->getBaseText() ] )
+			$this->msg( 'kolsherutlinks-log-page-rule-save', [ $details['url'], $title->getBaseText() ] )->text()
 		);
 
 		// Reassign links to pages
@@ -608,7 +608,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 				" '" . $contentArea->getTitle()->getBaseText() . "'";
 		}
 		$this->logEntry(
-			$this->msg( 'kolsherutlinks-log-category-rule-save', [ $details['url'], $categoryNames ] )
+			$this->msg( 'kolsherutlinks-log-category-rule-save', [ $details['url'], $categoryNames ] )->text()
 		);
 
 		// Reassign links to pages
@@ -652,7 +652,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 				$categoryNames .= $this->msg( 'kolsherutlinks-details-rule-header-content-area' ) .
 					" '" . Category::newFromID( $rule['content_area_id'] )->getTitle()->getBaseText() . "'";
 			}
-			$logMessage = $this->msg( 'kolsherutlinks-log-category-rule-delete', [ $rule['url'], $categoryNames ] );
+			$logMessage = $this->msg( 'kolsherutlinks-log-category-rule-delete', [ $rule['url'], $categoryNames ] )->text();
 		}
 		$this->logEntry( $logMessage );
 
@@ -672,7 +672,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		KolsherutLinks::reassignPagesLinks();
 
 		// Logging.
-		$this->logEntry( $this->msg( 'kolsherutlinks-log-link-delete', [ $link['url'] ] ) );
+		$this->logEntry( $this->msg( 'kolsherutlinks-log-link-delete', [ $link['url'] ] )->text() );
 
 		// Redirect to links list.
 		$output = $this->getOutput();
