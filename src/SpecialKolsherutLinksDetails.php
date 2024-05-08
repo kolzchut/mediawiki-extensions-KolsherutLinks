@@ -379,7 +379,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		}
 
 		// Logging.
-		$this->logEntry( $this->msg( 'kolsherutlinks-log-link-save', [ $data['url'] ] )->text() );
+		$logType = $postData['kslLinkId'] ? 'link-edit' : 'link-create';
+		$this->logEntry( $logType, $this->msg( 'kolsherutlinks-log-link-save', [ $data['url'] ] )->text() );
 
 		// Redirect to display link details.
 		$displayUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
@@ -461,6 +462,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		// Logging.
 		$details = KolsherutLinks::getLinkDetails( $linkId );
 		$this->logEntry(
+			'rule-save',
 			$this->msg( 'kolsherutlinks-log-page-rule-save', [ $details['url'], $title->getBaseText() ] )->text()
 		);
 
@@ -608,6 +610,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 				" '" . $contentArea->getTitle()->getBaseText() . "'";
 		}
 		$this->logEntry(
+			'category-rule-save',
 			$this->msg( 'kolsherutlinks-log-category-rule-save', [ $details['url'], $categoryNames ] )->text()
 		);
 
@@ -654,7 +657,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			}
 			$logMessage = $this->msg( 'kolsherutlinks-log-category-rule-delete', [ $rule['url'], $categoryNames ] )->text();
 		}
-		$this->logEntry( $logMessage );
+		$this->logEntry( 'rule-delete', $logMessage );
 
 		// Redirect to link details.
 		$output = $this->getOutput();
@@ -672,7 +675,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		KolsherutLinks::reassignPagesLinks();
 
 		// Logging.
-		$this->logEntry( $this->msg( 'kolsherutlinks-log-link-delete', [ $link['url'] ] )->text() );
+		$this->logEntry( 'link-delete', $this->msg( 'kolsherutlinks-log-link-delete', [ $link['url'] ] )->text() );
 
 		// Redirect to links list.
 		$output = $this->getOutput();
@@ -742,8 +745,9 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 	/**
 	 * @param string $text
 	 */
-	private function logEntry( $text ) {
-		$logEntry = new ManualLogEntry( 'kolsherutlinks', $text );
+	private function logEntry( $type, $text ) {
+		$logEntry = new ManualLogEntry( 'kolsherutlinks', $type );
+		$logEntry->setComment( $text );
 		$logEntry->setPerformer( $this->getUser() );
 		$logEntry->setTarget( $this->getOutput()->getTitle() );
 		$logid = $logEntry->insert();
