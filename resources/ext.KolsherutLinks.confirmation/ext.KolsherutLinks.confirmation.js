@@ -18,13 +18,13 @@ $( function () {
 			ProcessDialog.static.title = $(target).attr('data-confirmation-title');
 			ProcessDialog.static.actions = [
 				{
-					action: 'confirm',
+					action: 'delete',
 					label: mw.message( 'kolsherutlinks-confirmation-confirm' ).text(),
-					flags: 'primary'
+					flags: 'destructive'
 				},
 				{
 					label: mw.message( 'kolsherutlinks-confirmation-cancel' ).text(),
-					flags: 'safe'
+					flags: ['safe', 'reject']
 				}
 			];
 
@@ -41,7 +41,7 @@ $( function () {
 			// Action handlers
 			ProcessDialog.prototype.getActionProcess = function ( action ) {
 				var dialog = this;
-				if ( action === 'confirm' ) {
+				if ( action === 'delete' ) {
 					// Proceed to the linked url
 					window.location = target.href;
 				}
