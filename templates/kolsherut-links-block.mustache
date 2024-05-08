@@ -1,8 +1,7 @@
-<div class="kolsherut-links-section">
-	{{#link}}
-		<div class="kolsherut-link">
-			<p class="kolsherut-link-text">{{{text}}}</p>
-			<a class="kolsherut-link-link" href="{{{url}}}" target="_blank">לחוץ</a>
-		</div>
-	{{/link}}
+<div class="kolsherut-links-section green-border-box-with-icon">
+	<div class="icon-wrapper"><i aria-hidden="true" class="kzi kzi-article-tip"></i></div>
+	<div class="body">
+		<div class="header pagequality-ignore">{{{title}}}</div>
+		{{#link}}<a class="kolsherut-link" href="{{{url}}}" target="_blank">{{{text}}}</a>{{/link}}
+	</div>
 </div>

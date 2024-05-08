@@ -80,7 +80,7 @@ class KolsherutLinksPlacement {
 	 * Parser hook handler for {{#kolsherut_links:}}
 	 *
 	 * @param \Parser &$parser : Parser instance available to render wikitext into html, or parser methods.
-	 * @return string HTML output
+	 * @return string|array HTML output with action flags
 	 */
 	public static function renderLinksBlock( Parser &$parser ) {
 		$pageId = $parser->getTitle()->getArticleID();
@@ -101,9 +101,14 @@ class KolsherutLinksPlacement {
 			];
 		}
 
+		$templateData = [
+			'title' => wfMessage( 'kolsherutlinks-links-section-title' )->text(),
+			'link' => $links_data
+		];
+
 		// Parse template and return output.
 		$templateParser = new TemplateParser( __DIR__ . '/../templates' );
-		$return = $templateParser->processTemplate( 'kolsherut-links-block', [ 'link' => $links_data, ] );
+		$return = $templateParser->processTemplate( 'kolsherut-links-block', $templateData );
 		return [ $return, 'isHTML' => true ];
 	}
 
