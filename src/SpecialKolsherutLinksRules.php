@@ -100,7 +100,6 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 				<tbody>
 		' );
 		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksDetails' );
-$logger = KolsherutLinks::getLogger();
 		for (
 			$possibleAssignment = $resPossibleAssignments->fetchRow();
 			is_array( $possibleAssignment );

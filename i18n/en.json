@@ -8,12 +8,15 @@
 
 	"log-name-kolsherutlinks": "Kol Sherut links log",
 	"log-description-kolsherutlinks": "Logging Kol Sherut links activity.",
-	"kolsherutlinks-log-link-save": "Link saved: $1",
-	"kolsherutlinks-log-link-delete": "Link deleted: $1",
-	"kolsherutlinks-log-page-rule-save": "Page rule saved for page '$2' to link $1",
-	"kolsherutlinks-log-category-rule-save": "Category rule saved to link $1: $2",
-	"kolsherutlinks-log-page-rule-delete": "Page rule deleted for page '$2' to link $1",
-	"kolsherutlinks-log-category-rule-delete": "Category rule deleted to link $1: $2",
+	"logentry-kolsherutlinks-linkCreate": "$1 $3 Link created: $4",
+	"logentry-kolsherutlinks-linkEdit": "$1 $3 Link edited: $4",
+	"logentry-kolsherutlinks-linkDelete": "$1 $3 Link deleted: $4",
+	"logentry-kolsherutlinks-pageRule": "$1 $3 Page rule saved for page '$5' to link $4",
+	"logentry-kolsherutlinks-categoryRule": "$1 $3 Category rule saved to link $4: $5",
+	"logentry-kolsherutlinks-pageRuleDelete": "$1 $3 Page rule deleted for page '$5' to link $4",
+	"logentry-kolsherutlinks-categoryRuleDelete": "$1 $3 Category rule deleted to link $4: $5",
+
+	"kolsherutlinks-log-link-name": "Link ID $1",
 
 	"kolsherutlinks-list-desc": "Kol Sherut links and display rules",
 	"kolsherutlinks-list-header-url": "URL",

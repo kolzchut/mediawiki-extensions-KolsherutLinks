@@ -5,7 +5,6 @@ namespace MediaWiki\Extension\KolsherutLinks;
 use Category;
 use ExtensionRegistry;
 use HTMLForm;
-use ManualLogEntry;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use PermissionsError;
@@ -379,8 +378,9 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		}
 
 		// Logging.
-		$logType = $postData['kslLinkId'] ? 'link-edit' : 'link-create';
-		$this->logEntry( $logType, $this->msg( 'kolsherutlinks-log-link-save', [ $data['url'] ] )->text() );
+		$details = KolsherutLinks::getLinkDetails( $linkId );
+		$logAction = !empty( $postData['kslLinkId'] ) ? 'linkEdit' : 'linkCreate';
+		KolsherutLinks::logEntry( $logAction, $output->getTitle(), $details );
 
 		// Redirect to display link details.
 		$displayUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
@@ -449,11 +449,12 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		}
 
 		// Insert new rule
-		$res = KolsherutLinks::insertRule( [
+		$rule = [
 			'link_id' => $linkId,
 			'page_id' => $title->getArticleID(),
 			'priority' => $this->calculatePriority( [ 'page' => 1 ] ),
-		] );
+		];
+		$res = KolsherutLinks::insertRule( $rule );
 		if ( !$res ) {
 			// Insert failed for some reason.
 			return 'kolsherutlinks-details-error-rule-failed-save';
@@ -461,10 +462,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Logging.
 		$details = KolsherutLinks::getLinkDetails( $linkId );
-		$this->logEntry(
-			'rule-save',
-			$this->msg( 'kolsherutlinks-log-page-rule-save', [ $details['url'], $title->getBaseText() ] )->text()
-		);
+		KolsherutLinks::logEntry( 'pageRule', $output->getTitle(), $details, $rule );
 
 		// Reassign links to pages
 		KolsherutLinks::reassignPagesLinks();
@@ -598,21 +596,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Logging.
 		$details = KolsherutLinks::getLinkDetails( $linkId );
-		$categoryNames = implode(
-			', ',
-			array_map( fn( $categoryId ) => Category::newFromID( $categoryId )->getTitle()->getBaseText(), $categories )
-		);
-		if ( !empty( $contentArea ) ) {
-			if ( !empty( $categoryNames ) ) {
-				$categoryNames .= ', ';
-			}
-			$categoryNames .= $this->msg( 'kolsherutlinks-details-rule-header-content-area' ) .
-				" '" . $contentArea->getTitle()->getBaseText() . "'";
-		}
-		$this->logEntry(
-			'category-rule-save',
-			$this->msg( 'kolsherutlinks-log-category-rule-save', [ $details['url'], $categoryNames ] )->text()
-		);
+		KolsherutLinks::logEntry( 'categoryRule', $output->getTitle(), $details, $values );
 
 		// Reassign links to pages
 		KolsherutLinks::reassignPagesLinks();
@@ -634,33 +618,12 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		KolsherutLinks::reassignPagesLinks();
 
 		// Logging.
-		if ( !empty( $rule['page_id'] ) ) {
-			$logMessage = $this->msg( 'kolsherutlinks-log-page-rule-delete', [
-				$rule['url'],
-				Title::newFromID( $rule['page_id'] )->getBaseTitle()
-			] );
-		} else {
-			$categoryNames = implode(
-				', ',
-				array_map( fn( $categoryId ) => Category::newFromID( $categoryId )->getTitle()->getBaseText(),
-					array_filter( [
-						$rule['category_id_1'], $rule['category_id_2'], $rule['category_id_3'], $rule['category_id_4']
-					] )
-				)
-			);
-			if ( !empty( $rule['content_area_id'] ) ) {
-				if ( !empty( $categoryNames ) ) {
-					$categoryNames .= ', ';
-				}
-				$categoryNames .= $this->msg( 'kolsherutlinks-details-rule-header-content-area' ) .
-					" '" . Category::newFromID( $rule['content_area_id'] )->getTitle()->getBaseText() . "'";
-			}
-			$logMessage = $this->msg( 'kolsherutlinks-log-category-rule-delete', [ $rule['url'], $categoryNames ] )->text();
-		}
-		$this->logEntry( 'rule-delete', $logMessage );
+		$output = $this->getOutput();
+		$details = KolsherutLinks::getLinkDetails( $linkId );
+		$logAction = !empty( $rule['page_id'] ) ? 'pageRuleDelete' : 'categoryRuleDelete';
+		KolsherutLinks::logEntry( $logAction, $output->getTitle(), $details, $rule );
 
 		// Redirect to link details.
-		$output = $this->getOutput();
 		$detailsUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
 		$output->redirect( $detailsUrl, '303' );
 	}
@@ -675,10 +638,10 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		KolsherutLinks::reassignPagesLinks();
 
 		// Logging.
-		$this->logEntry( 'link-delete', $this->msg( 'kolsherutlinks-log-link-delete', [ $link['url'] ] )->text() );
+		$output = $this->getOutput();
+		KolsherutLinks::logEntry( 'linkDelete', $output->getTitle(), $link );
 
 		// Redirect to links list.
-		$output = $this->getOutput();
 		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
 		$output->redirect( $listPage->getLocalURL(), '303' );
 	}
@@ -740,16 +703,5 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			$contentAreas[ $category->getID() ] = $category->getTitle()->getBaseText();
 		}
 		return $contentAreas;
-	}
-
-	/**
-	 * @param string $text
-	 */
-	private function logEntry( $type, $text ) {
-		$logEntry = new ManualLogEntry( 'kolsherutlinks', $type );
-		$logEntry->setComment( $text );
-		$logEntry->setPerformer( $this->getUser() );
-		$logEntry->setTarget( $this->getOutput()->getTitle() );
-		$logid = $logEntry->insert();
 	}
 }

@@ -8,12 +8,15 @@
 
 	"log-name-kolsherutlinks": "יומן קישורים לכל שרות",
 	"log-description-kolsherutlinks": "יומן לפעילויות בקישורים לכל שרות",
-	"kolsherutlinks-log-link-save": "נשמר קישור: $1",
-	"kolsherutlinks-log-link-delete": "נמחק קישור: $1",
-	"kolsherutlinks-log-page-rule-save": "נשמר כלל ערך על דף '$2' לקישור $1",
-	"kolsherutlinks-log-category-rule-save": "נשמר כלל קטגוריות לקישור $1: $2",
-	"kolsherutlinks-log-page-rule-delete": "נמחק כלל ערך על דף '$2' לקישור $1",
-	"kolsherutlinks-log-category-rule-delete": "נמחק כלל קטגוריות לקישור $1: $2",
+	"logentry-kolsherutlinks-linkCreate": "$1 $3 נוצר קישור: $4",
+	"logentry-kolsherutlinks-linkEdit": "$1 $3 נערך קישור: $4",
+	"logentry-kolsherutlinks-linkDelete": "$1 $3 נמחק קישור: $4",
+	"logentry-kolsherutlinks-pageRule": "$1 $3 נשמר כלל ערך על דף '$5' לקישור $4",
+	"logentry-kolsherutlinks-categoryRule": "$1 $3 נשמר כלל קטגוריות לקישור $4: $5",
+	"logentry-kolsherutlinks-pageRuleDelete": "$1 $3 נמחק כלל ערך על דף '$5' לקישור $4",
+	"logentry-kolsherutlinks-categoryRuleDelete": "$1 $3 נמחק כלל קטגוריות לקישור $4: $5",
+
+	"kolsherutlinks-log-link-name": "קישור במזוהה $1",
 
 	"kolsherutlinks-list-desc": "קישורים לכל שרות",
 	"kolsherutlinks-list-header-url": "URL",

@@ -41,6 +41,15 @@
 	"LogNames": {
 			"kolsherutlinks": "kolsherutlinks-name"
 	},
+	"LogActionsHandlers": {
+		"kolsherutlinks/linkCreate": "\\MediaWiki\\Extension\\KolsherutLinks\\LogFormatter",
+		"kolsherutlinks/linkEdit": "\\MediaWiki\\Extension\\KolsherutLinks\\LogFormatter",
+		"kolsherutlinks/linkDelete": "\\MediaWiki\\Extension\\KolsherutLinks\\LogFormatter",
+		"kolsherutlinks/pageRule": "\\MediaWiki\\Extension\\KolsherutLinks\\LogFormatter",
+		"kolsherutlinks/categoryRule": "\\MediaWiki\\Extension\\KolsherutLinks\\LogFormatter",
+		"kolsherutlinks/pageRuleDelete": "\\MediaWiki\\Extension\\KolsherutLinks\\LogFormatter",
+		"kolsherutlinks/categoryRuleDelete": "\\MediaWiki\\Extension\\KolsherutLinks\\LogFormatter"
+	},
 	"MessagesDirs": {
     "KolsherutLinks": ["i18n"]
   },

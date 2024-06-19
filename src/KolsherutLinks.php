@@ -3,10 +3,12 @@
 namespace MediaWiki\Extension\KolsherutLinks;
 
 use ExtensionRegistry;
+use ManualLogEntry;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use Psr\Log\LoggerInterface;
 use PurgeJobUtils;
+use RequestContext;
 use Title;
 
 /**
@@ -26,6 +28,23 @@ class KolsherutLinks {
 			self::$logger = LoggerFactory::getInstance( 'KolsherutLinks' );
 		}
 		return self::$logger;
+	}
+
+	/**
+	 * Create special log entry
+	 * @param string $type
+	 * @param \MediaWiki\Linker\LinkTarget $target
+	 * @param array $link Details for the affected link.
+	 * @param array $params Optional additional parameters to pass to formatter.
+	 */
+	public static function logEntry( $type, $target, $link, $params = [] ) {
+		$user = RequestContext::getMain()->getUser();
+		$logEntry = new ManualLogEntry( 'kolsherutlinks', $type );
+//		$logEntry->setComment( $text );
+		$logEntry->setPerformer( $user );
+		$logEntry->setTarget( $target );
+		$logEntry->setParameters( array_merge( $link, $params ) );
+		$logid = $logEntry->insert();
 	}
 
 	/**
