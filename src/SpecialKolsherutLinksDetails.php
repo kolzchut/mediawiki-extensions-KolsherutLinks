@@ -398,7 +398,10 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$details = KolsherutLinks::getLinkDetails( $linkId );
 		$logAction = !empty( $postData['kslLinkId'] ) ? 'linkEdit' : 'linkCreate';
 		$target = SpecialPage::getTitleFor( 'KolsherutLinksDetails', $linkId );
-		KolsherutLinks::logEntry( $logAction, $target, $details );
+		if ( $logAction == 'linkCreate' ) {
+			// If one day we want to log edits, this `if` can be removed, or an `else` can be added.
+			KolsherutLinks::logEntry( $logAction, $target, $details );
+		}
 
 		// Redirect to display link details.
 		$displayUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
