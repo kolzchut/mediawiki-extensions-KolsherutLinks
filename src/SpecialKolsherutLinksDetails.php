@@ -52,6 +52,11 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			throw new PermissionsError( 'manage-kolsherut-links' );
 		}
 
+		// Treat numeric subpage parameter as link_id.
+		if ( !empty( $par ) && is_numeric( $par ) ) {
+			$queryParams['link_id'] = $par;
+		}
+
 		// Process and build page by operation.
 		$op = !empty( $postValues['wpkslOp'] ) ? $postValues['wpkslOp'] :
 			( !empty( $queryParams['op'] ) ? $queryParams['op'] : 'display' );
@@ -302,10 +307,22 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$deleteLinkUrl = $output->getTitle()->getLocalURL( [ 'op' => 'delete', 'link_id' => $linkId ] );
 		$deleteMsg = $this->msg( 'kolsherutlinks-details-op-link-delete' );
 		$output->addHTML( '
-			<div class="ksl-details-edit">
+			<div class="ksl-details-delete">
 				<a class="btn btn-primary kolsherutlinks-require-confirmation" data-confirmation-title="' . $deleteMsg
 					. '" href="' . $deleteLinkUrl . '">' . $deleteMsg
 				. '</a>
+			</div>
+		' );
+
+		// Log link
+		$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-log' ) . "</h2>" );
+		$logLink = SpecialPage::getTitleFor( 'Log' )->getLocalURL( [
+			'type' => 'kolsherutlinks',
+			'page' => SpecialPage::getTitleFor( 'KolsherutLinksDetails' )->getBaseTitle() . '/' . $linkId
+		] );
+		$output->addHTML( '
+			<div class="ksl-details-log">
+				<a href="' . $logLink . '">' . $this->msg( 'kolsherutlinks-details-log-link' ) . '</a>
 			</div>
 		' );
 	}
@@ -380,7 +397,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		// Logging.
 		$details = KolsherutLinks::getLinkDetails( $linkId );
 		$logAction = !empty( $postData['kslLinkId'] ) ? 'linkEdit' : 'linkCreate';
-		KolsherutLinks::logEntry( $logAction, $output->getTitle(), $details );
+		$target = SpecialPage::getTitleFor( 'KolsherutLinksDetails', $linkId );
+		KolsherutLinks::logEntry( $logAction, $target, $details );
 
 		// Redirect to display link details.
 		$displayUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
@@ -462,7 +480,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Logging.
 		$details = KolsherutLinks::getLinkDetails( $linkId );
-		KolsherutLinks::logEntry( 'pageRule', $output->getTitle(), $details, $rule );
+		$target = SpecialPage::getTitleFor( 'KolsherutLinksDetails', $linkId );
+		KolsherutLinks::logEntry( 'pageRule', $target, $details, $rule );
 
 		// Reassign links to pages
 		KolsherutLinks::reassignPagesLinks();
@@ -596,7 +615,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Logging.
 		$details = KolsherutLinks::getLinkDetails( $linkId );
-		KolsherutLinks::logEntry( 'categoryRule', $output->getTitle(), $details, $values );
+		$target = SpecialPage::getTitleFor( 'KolsherutLinksDetails', $linkId );
+		KolsherutLinks::logEntry( 'categoryRule', $target, $details, $values );
 
 		// Reassign links to pages
 		KolsherutLinks::reassignPagesLinks();
@@ -618,12 +638,13 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		KolsherutLinks::reassignPagesLinks();
 
 		// Logging.
-		$output = $this->getOutput();
 		$details = KolsherutLinks::getLinkDetails( $linkId );
 		$logAction = !empty( $rule['page_id'] ) ? 'pageRuleDelete' : 'categoryRuleDelete';
-		KolsherutLinks::logEntry( $logAction, $output->getTitle(), $details, $rule );
+		$target = SpecialPage::getTitleFor( 'KolsherutLinksDetails', $linkId );
+		KolsherutLinks::logEntry( $logAction, $target, $details, $rule );
 
 		// Redirect to link details.
+		$output = $this->getOutput();
 		$detailsUrl = $output->getTitle()->getLocalURL( [ 'link_id' => $linkId ] );
 		$output->redirect( $detailsUrl, '303' );
 	}
@@ -639,7 +660,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Logging.
 		$output = $this->getOutput();
-		KolsherutLinks::logEntry( 'linkDelete', $output->getTitle(), $link );
+		$target = SpecialPage::getTitleFor( 'KolsherutLinksDetails', $linkId );
+		KolsherutLinks::logEntry( 'linkDelete', $target, $link );
 
 		// Redirect to links list.
 		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );

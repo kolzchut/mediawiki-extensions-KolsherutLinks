@@ -46,6 +46,23 @@ $wgKolsherutLinksExcludedArticleTypes = [
 ];
 ```
 
+## Access Permissions
+
+Access to the management interface is governed by the `manage-kolsherut-links` permission.
+
+```php
+$wgGroupPermissions['sysop']['manage-kolsherut-links'] = true;
+```
+
+Logging of Kolsherut Links administrative actions is contained in the `kolsherutlinks`
+special log, to which link-specific navigation can be found at the bottom of each link
+details page in the management interface. Access to the `kolsherutlinks` special log is
+configured like any other special log in Mediawiki.
+
+```php
+$wgLogRestrictions['kolsherutlinks'] = 'manage-kolsherut-links';
+```
+
 ## Explicit Placement of Links
 
 For any article where the location of embedded links needs to differ from the placement

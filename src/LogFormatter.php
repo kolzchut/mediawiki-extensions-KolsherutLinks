@@ -21,9 +21,9 @@ class LogFormatter extends CoreLogFormatter {
 		$target = $this->entry->getTarget();
 		$targetLink = $this->getLinkRenderer()->makeLink(
 			$target,
-			$this->msg( 'kolsherutlinks-log-link-name', $data['link_id'] ),
+			$data['url'] ?? $this->msg( 'kolsherutlinks-log-link-name', $data['link_id'] ),
 			[],
-			[ 'link_id' => $data['link_id'] ]
+			[]
 		);
 		$params[2] = Message::rawParam( $targetLink );
 
