@@ -23,9 +23,8 @@ class KolsherutLinksPlacement {
 			// Ignore non-article.
 			return true;
 		}
-		// We're only interested in the main body of the page.
-		// @TODO: There has to be a better way of checking this. What is it??
-		if ( !empty( $parser->getOptions()->getSpeculativePageId() ) ) {
+		// We're only interested in the main body of the page, so the parser should have a revision ID.
+		if ( !empty( $parser->getRevisionId() ) ) {
 			// Are any links assigned to this page?
 			$pageId = $parser->getTitle()->getArticleID();
 			$links = KolsherutLinks::getLinksByPageId( $pageId );
