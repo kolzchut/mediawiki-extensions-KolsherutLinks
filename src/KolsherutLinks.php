@@ -52,8 +52,8 @@ class KolsherutLinks {
 	 * @return array|bool
 	 */
 	public static function getLinkDetails( $linkId ) {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[ 'links' => 'kolsherutlinks_links' ],
 			[ 'links.link_id', 'links.url', 'links.text' ],
 			[ 'links.link_id' => $linkId ],
@@ -67,8 +67,8 @@ class KolsherutLinks {
 	 */
 	public static function getLinksByPageId( $pageId ) {
 		$links = [];
-		$dbw = wfGetDB( DB_PRIMARY );
-		$res = $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		$res = $dbr->select(
 			[
 				'assignments' => 'kolsherutlinks_assignments',
 				'links' => 'kolsherutlinks_links',
@@ -92,8 +92,8 @@ class KolsherutLinks {
 	 * @return \IResultWrapper
 	 */
 	public static function getLinkRules( $linkId ) {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[
 				'rules' => 'kolsherutlinks_rules',
 				'page' => 'page',
@@ -116,8 +116,8 @@ class KolsherutLinks {
 	 * @return array|bool
 	 */
 	public static function getRule( $ruleId ) {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[ 'rules' => 'kolsherutlinks_rules' ],
 			[
 				'rules.link_id', 'rules.fallback', 'rules.page_id', 'rules.content_area_id', 'rules.category_id_1',
@@ -132,8 +132,8 @@ class KolsherutLinks {
 	 * @return \IResultWrapper
 	 */
 	public static function getAllRules() {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[
 				'rules' => 'kolsherutlinks_rules',
 				'links' => 'kolsherutlinks_links',
@@ -183,8 +183,8 @@ class KolsherutLinks {
 	 * @return \IResultWrapper
 	 */
 	public static function getLinkCategoryRules( $linkId ) {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[
 				'rules' => 'kolsherutlinks_rules',
 				'content_area' => 'category',
@@ -232,8 +232,8 @@ class KolsherutLinks {
 	 * @return \IResultWrapper
 	 */
 	public static function getPageAssignments( $linkId = false ) {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[
 				'assignments' => 'kolsherutlinks_assignments',
 				'pages' => 'page',
@@ -250,8 +250,8 @@ class KolsherutLinks {
 	 * @return \IResultWrapper
 	 */
 	public static function getAllCategories() {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[ 'category' => 'category' ],
 			[ 'category.cat_id', 'category.cat_title' ],
 			"category.cat_pages > 0",
@@ -264,8 +264,8 @@ class KolsherutLinks {
 	 * @return \IResultWrapper
 	 */
 	public static function getAllContentAreas() {
-		$dbw = wfGetDB( DB_PRIMARY );
-		return $dbw->select(
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
 			[ 'page_props' => 'page_props' ],
 			[ 'page_props.pp_value' ],
 			"page_props.pp_propname = 'ArticleContentArea' and pp_value <> ''",
@@ -279,10 +279,10 @@ class KolsherutLinks {
 	 * @return \IResultWrapper
 	 */
 	public static function getPossibleAssignments( $linkId = false ) {
-		$dbw = wfGetDB( DB_PRIMARY );
+		$dbr = wfGetDB( DB_REPLICA );
 		$whereLinkPageRules = ( $linkId === false ) ? '' : "AND page_rules.link_id={$linkId}";
 		$whereLinkCategoryRules = ( $linkId === false ) ? '' : "AND cat_rules.link_id={$linkId}";
-		return $dbw->query(
+		return $dbr->query(
 			"SELECT page_rules.page_id, page_rules.rule_id, page_rules.link_id, page_rules.fallback,
 						page_rules.priority, page_links.url
 					FROM kolsherutlinks_rules AS page_rules
