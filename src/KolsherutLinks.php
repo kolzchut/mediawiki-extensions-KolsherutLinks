@@ -280,6 +280,8 @@ class KolsherutLinks {
 	 */
 	public static function getPossibleAssignments( $linkId = false ) {
 		$dbr = wfGetDB( DB_REPLICA );
+		$contentAreaPropName = ExtensionRegistry::getInstance()->isLoaded( 'ArticleContentArea' ) ?
+			'ArticleContentArea' : \MediaWiki\Extension\ArticleContentArea\ArticleContentArea::$DATA_VAR;
 		$whereLinkPageRules = ( $linkId === false ) ? '' : "AND page_rules.link_id={$linkId}";
 		$whereLinkCategoryRules = ( $linkId === false ) ? '' : "AND cat_rules.link_id={$linkId}";
 		return $dbr->query(
@@ -300,7 +302,7 @@ class KolsherutLinks {
 					LEFT JOIN category AS cat3 ON cat3.cat_id=cat_rules.category_id_3
 					LEFT JOIN category AS cat4 ON cat4.cat_id=cat_rules.category_id_4
 					LEFT JOIN page_props AS pp ON (
-						ca.cat_id IS NOT NULL AND pp.pp_propname='ArticleContentArea' AND 
+						ca.cat_id IS NOT NULL AND pp.pp_propname='{$contentAreaPropName}' AND
 						REPLACE(pp.pp_value, ' ', '_')=ca.cat_title
 					)
 					LEFT JOIN categorylinks AS cl1 ON (cat1.cat_id IS NOT NULL AND cl1.cl_to=cat1.cat_title)
