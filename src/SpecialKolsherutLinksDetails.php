@@ -713,6 +713,11 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 	 * Utility to query and return all content area category IDs and names.
 	 * Includes only those that are actually in use (i.e., tagged to articles)
 	 * not necessarily all that would be considered "valid".
+	 *
+	 * Differs from ArticleContentArea::getValidContentAreas() in two ways:
+	 * 1) Returns values even if $wgArticleContentAreaCategoryName is null
+	 * 2) Returns only the values in active use as content areas.
+	 *
 	 * @return array
 	 */
 	private function getAllContentAreas() {
