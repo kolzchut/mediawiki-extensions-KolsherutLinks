@@ -56,7 +56,7 @@ class KolsherutLinks {
 		return $dbw->select(
 			[ 'links' => 'kolsherutlinks_links' ],
 			[ 'links.link_id', 'links.url', 'links.text' ],
-			"links.link_id={$linkId}",
+			[ 'links.link_id' => $linkId ],
 			__METHOD__
 		)->fetchRow();
 	}
@@ -74,7 +74,7 @@ class KolsherutLinks {
 				'links' => 'kolsherutlinks_links',
 			],
 			[ 'links.link_id', 'links.url', 'links.text' ],
-			"assignments.page_id={$pageId}",
+			[ 'assignments.page_id' => $pageId ],
 			__METHOD__,
 			[],
 			[
@@ -100,7 +100,7 @@ class KolsherutLinks {
 			],
 			[ 'rules.rule_id', 'rules.page_id', 'page.page_title' ],
 			[
-				"rules.link_id={$linkId}",
+				'rules.link_id' => $linkId,
 				"rules.page_id IS NOT NULL",
 			],
 			__METHOD__,
@@ -123,9 +123,7 @@ class KolsherutLinks {
 				'rules.link_id', 'rules.fallback', 'rules.page_id', 'rules.content_area_id', 'rules.category_id_1',
 				'rules.category_id_2', 'rules.category_id_3', 'rules.category_id_4', 'rules.priority',
 			],
-			[
-				"rules.rule_id={$ruleId}",
-			],
+			[ 'rules.rule_id' => $ruleId ],
 			__METHOD__,
 		)->fetchRow();
 	}
@@ -211,7 +209,7 @@ class KolsherutLinks {
 				'cat4_title' => 'category4.cat_title',
 			],
 			[
-				"rules.link_id={$linkId}",
+				'rules.link_id' => $linkId,
 				"rules.content_area_id IS NOT NULL OR rules.category_id_1 IS NOT NULL",
 			],
 			__METHOD__,
@@ -241,7 +239,7 @@ class KolsherutLinks {
 				'pages' => 'page',
 			],
 			[ 'assignments.page_id', 'pages.page_title', 'assignments.link_id' ],
-			$linkId ? "assignments.link_id={$linkId}" : "1=1",
+			$linkId ? [ 'assignments.link_id' => $linkId ] : "1=1",
 			__METHOD__,
 			[ 'ORDER BY' => 'pages.page_title ASC' ],
 			[ 'pages' => [ 'INNER JOIN', 'pages.page_id=assignments.page_id' ] ]
@@ -340,7 +338,7 @@ class KolsherutLinks {
 					'url' => $data['url'],
 					'text' => $data['text'],
 				],
-				"link_id={$linkId}",
+				[ 'link_id' => $linkId ],
 				__METHOD__
 			);
 			if ( !$res ) {
@@ -362,7 +360,7 @@ class KolsherutLinks {
 			$row = $dbw->select(
 				[ 'links' => 'kolsherutlinks_links' ],
 				[ 'links.link_id' ],
-				"links.url='{$data['url']}'",
+				[ 'links.url' => $data['url'] ],
 				__METHOD__,
 				[
 					'ORDER BY' => 'link_id DESC',
@@ -397,7 +395,10 @@ class KolsherutLinks {
 		$dbw = wfGetDB( DB_PRIMARY );
 		return $dbw->delete(
 			'kolsherutlinks_rules',
-			[ "link_id={$linkId}", "rule_id={$ruleId}" ]
+			[
+				'link_id' => $linkId,
+				'rule_id' => $ruleId,
+			]
 		);
 	}
 
@@ -409,11 +410,11 @@ class KolsherutLinks {
 		$dbw = wfGetDB( DB_PRIMARY );
 		$dbw->delete(
 			'kolsherutlinks_rules',
-			[ "link_id={$linkId}" ]
+			[ 'link_id' => $linkId ]
 		);
 		return $dbw->delete(
 			'kolsherutlinks_links',
-			[ "link_id={$linkId}" ]
+			[ 'link_id' => $linkId ]
 		);
 	}
 
