@@ -265,6 +265,11 @@ class KolsherutLinks {
 	}
 
 	/**
+	 * Query all possible assignments based on current rules,
+	 * optionally limited to a single link's rules.
+	 * Single giant query optimized for performance, because
+	 * we have to do this after every change to the rules.
+	 *
 	 * @param int|null $linkId (optional) Limit to a single link, otherwise consider all links.
 	 * @return \IResultWrapper
 	 */
