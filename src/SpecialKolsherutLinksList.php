@@ -3,8 +3,6 @@
 namespace MediaWiki\Extension\KolsherutLinks;
 
 use Category;
-use MediaWiki\MediaWikiServices;
-use PermissionsError;
 use Sanitizer;
 use SpecialPage;
 
@@ -19,7 +17,7 @@ class SpecialKolsherutLinksList extends SpecialPage {
 	 * @inheritDoc
 	 */
 	public function __construct() {
-		parent::__construct( 'KolsherutLinksList' );
+		parent::__construct( 'KolsherutLinksList', 'manage-kolsherut-links' );
 	}
 
 	/**
@@ -36,14 +34,6 @@ class SpecialKolsherutLinksList extends SpecialPage {
 	public function execute( $par ) {
 		$output = $this->getOutput();
 		$this->setHeaders();
-
-		// Does the user have access?
-		$hasAccess = MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
-			$this->getUser(), 'manage-kolsherut-links'
-		);
-		if ( !$hasAccess ) {
-			throw new PermissionsError( 'manage-kolsherut-links' );
-		}
 
 		// Link back to list page
 		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksRules' );

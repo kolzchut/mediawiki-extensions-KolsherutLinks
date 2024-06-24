@@ -5,9 +5,7 @@ namespace MediaWiki\Extension\KolsherutLinks;
 use Category;
 use ExtensionRegistry;
 use HTMLForm;
-use MediaWiki\MediaWikiServices;
 use MWException;
-use PermissionsError;
 use SpecialPage;
 use Title;
 use WikiPage;
@@ -23,7 +21,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 	 * @inheritDoc
 	 */
 	public function __construct() {
-		parent::__construct( 'KolsherutLinksDetails' );
+		parent::__construct( 'KolsherutLinksDetails', 'manage-kolsherut-links' );
 	}
 
 	/**
@@ -43,14 +41,6 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$postValues = $request->getPostValues();
 		$queryParams = $request->getQueryValues();
 		$output = $this->getOutput();
-
-		// Does the user have access?
-		$hasAccess = MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
-			$this->getUser(), 'manage-kolsherut-links'
-		);
-		if ( !$hasAccess ) {
-			throw new PermissionsError( 'manage-kolsherut-links' );
-		}
 
 		// Treat numeric subpage parameter as link_id.
 		if ( !empty( $par ) && is_numeric( $par ) ) {
