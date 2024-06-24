@@ -118,7 +118,9 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 			$tableRow .= '<td><a target="_blank" href="' . $page->getLocalURL() . '">' . $page->getBaseText()
 				. '</a></td>';
 			// Link URL and admin
-			$tableRow .= '<td><a href="' . $linkDetailsUrl . '">' . $rule['link_url'] . '</a></td>';
+			$urlToDisplay = strlen( $rule['link_url'] ) > 45 ?
+				( substr( $rule['link_url'], 0, 42 ) . '...' ) : $rule['link_url'];
+			$tableRow .= '<td><a href="' . $linkDetailsUrl . '">' . $urlToDisplay . '</a></td>';
 			// Currently has a page assignment?
 			$tableRow .= '<td>'
 				. ( !empty( $assignments[ $possibleAssignment['page_id'] ][ $rule['link_id'] ] ) ? 'X' : '-' )

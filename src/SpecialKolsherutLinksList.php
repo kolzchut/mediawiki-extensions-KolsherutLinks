@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\KolsherutLinks;
 use Category;
 use MediaWiki\MediaWikiServices;
 use PermissionsError;
+use Sanitizer;
 use SpecialPage;
 
 /**
@@ -103,6 +104,7 @@ class SpecialKolsherutLinksList extends SpecialPage {
 		$res = KolsherutLinks::getAllLinks();
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$link_id = $row['link_id'];
+			$urlToDisplay = strlen( $row['url'] ) > 45 ? ( substr( $row['url'], 0, 42 ) . '...' ) : $row['url'];
 			$detailsUrl = $detailsPage->getLocalURL( [ 'link_id' => $link_id ] );
 			$deleteUrl = $detailsPage->getLocalURL( [ 'link_id' => $link_id, 'op' => 'delete' ] );
 			$categories = '';
@@ -114,8 +116,8 @@ class SpecialKolsherutLinksList extends SpecialPage {
 			$output->addHTML(
 				'<tr>'
 				. '<td>' . $link_id . '</td>'
-				. '<td><a href="' . $detailsUrl . '">' . $row['url'] . '</a></td>'
-				. '<td>' . $row['text'] . '</td>'
+				. '<td><a href="' . $detailsUrl . '">' . $urlToDisplay . '</a></td>'
+				. '<td>' . Sanitizer::decodeCharReferences( $row['text'] ) . '</td>'
 				. '<td>' . $row['pagecount'] . '</td>'
 				. '<td>' . $categories . '</td>'
 				. '<td><a class="kolsherutlinks-require-confirmation" data-confirmation-title="' . $deleteMsg

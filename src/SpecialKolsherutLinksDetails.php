@@ -386,8 +386,6 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 	public function handleLinkSave( $postData ) {
 		$output = $this->getOutput();
 
-		// @TODO: check URL format?
-
 		// Save link to DB.
 		$data = [
 			'url' => $postData['kslLinkUrl'],

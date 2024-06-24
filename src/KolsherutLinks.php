@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\KolsherutLinks;
 
+use Category;
 use ExtensionRegistry;
 use ManualLogEntry;
 use MediaWiki\Logger\LoggerFactory;
@@ -9,6 +10,7 @@ use MediaWiki\MediaWikiServices;
 use Psr\Log\LoggerInterface;
 use PurgeJobUtils;
 use RequestContext;
+use Sanitizer;
 use Title;
 
 /**
@@ -76,12 +78,16 @@ class KolsherutLinks {
 	 */
 	public static function getLinkDetails( $linkId ) {
 		$dbr = wfGetDB( DB_REPLICA );
-		return $dbr->select(
+		$link = $dbr->select(
 			[ 'links' => 'kolsherutlinks_links' ],
 			[ 'links.link_id', 'links.url', 'links.text' ],
 			[ 'links.link_id' => $linkId ],
 			__METHOD__
 		)->fetchRow();
+		if ( !empty( $link['text'] ) ) {
+			$link['text'] = Sanitizer::decodeCharReferences( $link['text'] );
+		}
+		return $link;
 	}
 
 	/**
@@ -321,8 +327,10 @@ class KolsherutLinks {
 	 */
 	public static function saveLinkDetails( $data ) {
 		$dbw = wfGetDB( DB_PRIMARY );
-		// @TODO: sanitize url and text
 		if ( !empty( $data['link_id'] ) ) {
+			// Sanitize input.
+			$data['url'] = Sanitizer::cleanUrl( $data['url'] );
+			$data['text'] = Sanitizer::escapeHtmlAllowEntities( $data['text'] );
 			// Update existing link.
 			$linkId = intval( $data['link_id'] );
 			$res = $dbw->update(
@@ -371,7 +379,19 @@ class KolsherutLinks {
 	 */
 	public static function insertRule( $data ) {
 		$dbw = wfGetDB( DB_PRIMARY );
-		// @TODO: sanitize data
+		// Sanitize data.
+		foreach ( [ 'link_id', 'fallback', 'page_id', 'priority' ] as $intField ) {
+			if ( !empty( $data[$intField] ) ) {
+				$data[$intField] = intval( $data[$intField] );
+			}
+		}
+		foreach ( [ 'content_area', 'category_1', 'category_2', 'category_3', 'category_4' ] as $catField ) {
+			if ( !empty( $data[$catField] ) ) {
+				$category = Category::newFromName( $data[$catField] );
+				$data[$catField] = !empty( $category ) ? $category->getName() : '';
+			}
+		}
+		// Insert data.
 		return $dbw->insert(
 			'kolsherutlinks_rules',
 			$data,
