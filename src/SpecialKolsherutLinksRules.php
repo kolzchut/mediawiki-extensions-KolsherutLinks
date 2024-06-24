@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\KolsherutLinks;
 
+use Category;
 use MediaWiki\MediaWikiServices;
 use PermissionsError;
 use SpecialPage;
@@ -125,22 +126,30 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 			// Rule ID
 			$tableRow .= '<td>' . $possibleAssignment['rule_id'] . '</td>';
 			// Content area name with link (in new tab/window)
-			if ( !empty( $rule['content_area_title'] ) ) {
-				$caTitle = Title::makeTitle( NS_CATEGORY, $rule['content_area_title'] );
-				$tableRow .= '<td><a target="_blank" href="' . $caTitle->getLocalURL() . '">'
-					. $caTitle->getBaseText() . '</a></td>';
+			if ( !empty( $rule['content_area'] ) ) {
+				$category = Category::newFromName( $rule['content_area'] );
+				if ( !empty( $category ) ) {
+					$tableRow .= '<td><a target="_blank" href="' . $category->getTitle()->getLocalURL() . '">'
+					. $category->getTitle()->getBaseText() . '</a></td>';
+				} else {
+					$tableRow .= '<td>' . $rule['content_area'] . '</td>';
+				}
 			} else {
 				$tableRow .= '<td>-</td>';
 			}
 			// Category name(s) with link(s) (in new tab/window)
-			if ( !empty( $rule['cat1_title'] ) ) {
+			if ( !empty( $rule['category_1'] ) ) {
 				$links = [];
 				foreach ( array_filter( [
-					$rule['cat1_title'], $rule['cat2_title'], $rule['cat3_title'], $rule['cat4_title']
+					$rule['category_1'], $rule['category_2'], $rule['category_3'], $rule['category_4']
 				] ) as $categoryName ) {
-					$catTitle = Title::makeTitle( NS_CATEGORY, $categoryName );
-					$links[] = '<a target="_blank" href="' . $catTitle->getLocalURL() . '">' . $catTitle->getBaseText()
-						. '</a>';
+					$category = Category::newFromName( $categoryName );
+					if ( !empty( $category ) ) {
+						$links[] = '<a target="_blank" href="' . $category->getTitle()->getLocalURL() . '">'
+						. $category->getTitle()->getBaseText() . '</a>';
+					} else {
+						$links[] = $categoryName;
+					}
 				}
 				$tableRow .= '<td>' . implode( ' + ', $links ) . '</td>';
 			} else {

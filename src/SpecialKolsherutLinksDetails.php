@@ -208,22 +208,30 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$tableBody .= '<tr>';
 			// Content area name with link (in new tab/window)
-			if ( !empty( $row['content_area_title'] ) ) {
-				$caTitle = Title::makeTitle( NS_CATEGORY, $row['content_area_title'] );
-				$tableBody .= '<td><a target="_blank" href="' . $caTitle->getLocalURL() . '">'
-					. $caTitle->getBaseText() . '</a></td>';
+			if ( !empty( $row['content_area'] ) ) {
+				$category = Category::newFromName( $row['content_area'] );
+				if ( !empty( $category ) ) {
+					$tableBody .= '<td><a target="_blank" href="' . $category->getTitle()->getLocalURL() . '">'
+					. $category->getTitle()->getBaseText() . '</a></td>';
+				} else {
+					$tableBody .= $row['content_area'];
+				}
 			} else {
 				$tableBody .= '<td></td>';
 			}
 			// Category name(s) with link(s) (in new tab/window)
-			if ( !empty( $row['cat1_title'] ) ) {
+			if ( !empty( $row['category_1'] ) ) {
 				$links = [];
 				foreach ( array_filter( [
-					$row['cat1_title'], $row['cat2_title'], $row['cat3_title'], $row['cat4_title']
+					$row['category_1'], $row['category_2'], $row['category_3'], $row['category_4']
 				] ) as $categoryName ) {
-					$catTitle = Title::makeTitle( NS_CATEGORY, $categoryName );
-					$links[] = '<a target="_blank" href="' . $catTitle->getLocalURL() . '">' . $catTitle->getBaseText()
-						. '</a>';
+					$category = Category::newFromName( $categoryName );
+					if ( !empty( $category ) ) {
+						$links[] = '<a target="_blank" href="' . $category->getTitle()->getLocalURL() . '">'
+						. $category->getTitle()->getBaseText() . '</a>';
+					} else {
+						$links[] = $categoryName;
+					}
 				}
 				$tableBody .= '<td>' . implode( ' + ', $links ) . '</td>';
 			} else {
@@ -572,7 +580,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		// Verify content area name
 		if ( !empty( $postData['kslContentAreaName'] ) ) {
 			$contentArea = Category::newFromName( $postData[ 'kslContentAreaName' ] );
-			if ( empty( $contentArea->getID() ) ) {
+			if ( !$contentArea || empty( $contentArea->getID() ) ) {
 				// No. Stop processing and re-prompt for a valid name.
 				return [ [ 'kolsherutlinks-details-error-category-not-found', $postData[ 'kslContentAreaName' ] ] ];
 			}
@@ -584,11 +592,11 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			if ( !empty( $postData[ $key ] ) ) {
 				$category = Category::newFromName( $postData[ $key ] );
 				// Valid category name?
-				if ( empty( $category->getID() ) ) {
+				if ( !$category || empty( $category->getID() ) ) {
 					// No. Stop processing and re-prompt for a valid name.
 					return [ [ 'kolsherutlinks-details-error-category-not-found', $postData[ $key ] ] ];
 				}
-				$categories[] = $category->getID();
+				$categories[] = $category->getName();
 			}
 		}
 
@@ -605,10 +613,10 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			] ),
 		];
 		if ( !empty( $contentArea ) ) {
-			$values['content_area_id'] = $contentArea->getID();
+			$values['content_area'] = $contentArea->getName();
 		}
 		for ( $i = 0; $i < count( $categories ); $i++ ) {
-			$values[ 'category_id_' . ( $i + 1 ) ] = $categories[ $i ];
+			$values[ 'category_' . ( $i + 1 ) ] = $categories[ $i ];
 		}
 		$res = KolsherutLinks::insertRule( $values );
 		if ( !$res ) {
@@ -703,8 +711,8 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$categories = [];
 		$res = KolsherutLinks::getAllCategories();
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$catTitle = Title::makeTitle( NS_CATEGORY, $row['cat_title'] );
-			$categories[ $row['cat_id'] ] = $catTitle->getBaseText();
+			$category = Category::newFromName( $row['cat_title'] );
+			$categories[ $category->getName() ] = $category->getTitle()->getBaseText();
 		}
 		return $categories;
 	}
@@ -730,7 +738,7 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$res = KolsherutLinks::getAllContentAreas();
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$category = Category::newFromName( $row['pp_value'] );
-			$contentAreas[ $category->getID() ] = $category->getTitle()->getBaseText();
+			$contentAreas[ $category->getName() ] = $category->getTitle()->getBaseText();
 		}
 		return $contentAreas;
 	}

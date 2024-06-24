@@ -44,19 +44,19 @@ class LogFormatter extends CoreLogFormatter {
 			case 'kolsherutlinks/categoryRuleDelete':
 				$categoryNames = implode(
 					', ',
-					array_map( fn( $categoryId ) => Category::newFromID( $categoryId )->getTitle()->getBaseText(),
+					array_map( fn( $categoryId ) => Category::newFromName( $categoryId )->getTitle()->getBaseText(),
 						array_filter( [
-							$data['category_id_1'] ?? 0, $data['category_id_2'] ?? 0, $data['category_id_3'] ?? 0,
-							$data['category_id_4'] ?? 0
+							$data['category_1'] ?? 0, $data['category_2'] ?? 0, $data['category_3'] ?? 0,
+							$data['category_4'] ?? 0
 						] )
 					)
 				);
-				if ( !empty( $data['content_area_id'] ) ) {
+				if ( !empty( $data['content_area'] ) ) {
 					if ( !empty( $categoryNames ) ) {
 						$categoryNames .= ', ';
 					}
 					$categoryNames .= $this->msg( 'kolsherutlinks-details-rule-header-content-area' ) .
-						" '" . Category::newFromID( $data['content_area_id'] )->getTitle()->getBaseText() . "'";
+						" '" . Category::newFromName( $data['content_area'] )->getTitle()->getBaseText() . "'";
 				}
 				$params[4] = $categoryNames;
 				break;

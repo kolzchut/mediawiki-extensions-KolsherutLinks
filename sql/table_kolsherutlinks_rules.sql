@@ -3,11 +3,11 @@ CREATE TABLE IF NOT EXISTS /*_*/kolsherutlinks_rules (
 	link_id INTEGER UNSIGNED NOT NULL,
 	fallback INTEGER NOT NULL DEFAULT 0,
 	page_id INTEGER UNSIGNED,
-	content_area_id INTEGER UNSIGNED,
-	category_id_1 INTEGER UNSIGNED,
-	category_id_2 INTEGER UNSIGNED,
-	category_id_3 INTEGER UNSIGNED,
-	category_id_4 INTEGER UNSIGNED,
+	content_area TEXT,
+	category_1 TEXT,
+	category_2 TEXT,
+	category_3 TEXT,
+	category_4 TEXT,
 	priority INTEGER DEFAULT 0,
 
 	FOREIGN KEY (link_id) REFERENCES /*_*/kolsherutlinks_links(link_id),
@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS /*_*/kolsherutlinks_rules (
 ) /*$wgDBTableOptions*/;
 
 CREATE INDEX /*i*/page_id ON /*_*/kolsherutlinks_rules (page_id);
-CREATE INDEX /*i*/content_area_id ON /*_*/kolsherutlinks_rules (content_area_id);
-CREATE INDEX /*i*/category_id_1 ON /*_*/kolsherutlinks_rules (category_id_1);
-CREATE INDEX /*i*/category_id_2 ON /*_*/kolsherutlinks_rules (category_id_2);
-CREATE INDEX /*i*/category_id_3 ON /*_*/kolsherutlinks_rules (category_id_3);
-CREATE INDEX /*i*/category_id_4 ON /*_*/kolsherutlinks_rules (category_id_4);
+CREATE INDEX /*i*/content_area ON /*_*/kolsherutlinks_rules (content_area);
+CREATE INDEX /*i*/category_1 ON /*_*/kolsherutlinks_rules (category_1);
+CREATE INDEX /*i*/category_2 ON /*_*/kolsherutlinks_rules (category_2);
+CREATE INDEX /*i*/category_3 ON /*_*/kolsherutlinks_rules (category_3);
+CREATE INDEX /*i*/category_4 ON /*_*/kolsherutlinks_rules (category_4);

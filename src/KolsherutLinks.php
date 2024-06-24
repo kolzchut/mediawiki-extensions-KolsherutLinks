@@ -48,6 +48,29 @@ class KolsherutLinks {
 	}
 
 	/**
+	 * @return \IResultWrapper
+	 */
+	public static function getAllLinks() {
+		$dbr = wfGetDB( DB_REPLICA );
+		return $dbr->select(
+			[
+				'links' => 'kolsherutlinks_links',
+				'pages' => 'kolsherutlinks_assignments',
+		  ],
+			[ 'links.link_id', 'links.url', 'links.text', 'COUNT(pages.link_id) pagecount' ],
+			"",
+			__METHOD__,
+			[
+				'GROUP BY' => 'links.link_id',
+				'ORDER BY' => 'pagecount DESC, url ASC',
+			],
+			[
+				'pages' => [ 'LEFT JOIN', 'pages.link_id=links.link_id' ],
+			],
+		);
+	}
+
+	/**
 	 * @param int $linkId Link ID
 	 * @return array|bool
 	 */
@@ -120,8 +143,8 @@ class KolsherutLinks {
 		return $dbr->select(
 			[ 'rules' => 'kolsherutlinks_rules' ],
 			[
-				'rules.link_id', 'rules.fallback', 'rules.page_id', 'rules.content_area_id', 'rules.category_id_1',
-				'rules.category_id_2', 'rules.category_id_3', 'rules.category_id_4', 'rules.priority',
+				'rules.link_id', 'rules.fallback', 'rules.page_id', 'rules.content_area', 'rules.category_1',
+				'rules.category_2', 'rules.category_3', 'rules.category_4', 'rules.priority',
 			],
 			[ 'rules.rule_id' => $ruleId ],
 			__METHOD__,
@@ -137,30 +160,20 @@ class KolsherutLinks {
 			[
 				'rules' => 'kolsherutlinks_rules',
 				'links' => 'kolsherutlinks_links',
-				'content_area' => 'category',
-				'category1' => 'category',
-				'category2' => 'category',
-				'category3' => 'category',
-				'category4' => 'category',
 			],
 			[
 				'rule_id' => 'rules.rule_id',
 				'link_id' => 'rules.link_id',
 				'fallback' => 'rules.fallback',
 				'page_id' => 'rules.page_id',
-				'content_area_id' => 'rules.content_area_id',
-				'category_id_1' => 'rules.category_id_1',
-				'category_id_2' => 'rules.category_id_2',
-				'category_id_3' => 'rules.category_id_3',
-				'category_id_4' => 'rules.category_id_4',
+				'content_area' => 'rules.content_area',
+				'category_1' => 'rules.category_1',
+				'category_2' => 'rules.category_2',
+				'category_3' => 'rules.category_3',
+				'category_4' => 'rules.category_4',
 				'priority' => 'rules.priority',
 				'link_url' => 'links.url',
 				'link_text' => 'links.text',
-				'content_area_title' => 'content_area.cat_title',
-				'cat1_title' => 'category1.cat_title',
-				'cat2_title' => 'category2.cat_title',
-				'cat3_title' => 'category3.cat_title',
-				'cat4_title' => 'category4.cat_title',
 			],
 			'',
 			__METHOD__,
@@ -169,11 +182,6 @@ class KolsherutLinks {
 			],
 			[
 				'links' => [ 'LEFT JOIN', 'links.link_id=rules.link_id' ],
-				'content_area' => [ 'LEFT JOIN', 'content_area.cat_id=rules.content_area_id' ],
-				'category1' => [ 'LEFT JOIN', 'category1.cat_id=rules.category_id_1' ],
-				'category2' => [ 'LEFT JOIN', 'category2.cat_id=rules.category_id_2' ],
-				'category3' => [ 'LEFT JOIN', 'category3.cat_id=rules.category_id_3' ],
-				'category4' => [ 'LEFT JOIN', 'category4.cat_id=rules.category_id_4' ],
 			],
 		);
 	}
@@ -185,45 +193,27 @@ class KolsherutLinks {
 	public static function getLinkCategoryRules( $linkId ) {
 		$dbr = wfGetDB( DB_REPLICA );
 		return $dbr->select(
-			[
-				'rules' => 'kolsherutlinks_rules',
-				'content_area' => 'category',
-				'category1' => 'category',
-				'category2' => 'category',
-				'category3' => 'category',
-				'category4' => 'category',
-			],
+			[ 'rules' => 'kolsherutlinks_rules' ],
 			[
 				'rule_id' => 'rules.rule_id',
 				'fallback' => 'rules.fallback',
 				'priority' => 'rules.priority',
-				'content_area_id' => 'rules.content_area_id',
-				'category_id_1' => 'rules.category_id_1',
-				'category_id_2' => 'rules.category_id_2',
-				'category_id_3' => 'rules.category_id_3',
-				'category_id_4' => 'rules.category_id_4',
-				'content_area_title' => 'content_area.cat_title',
-				'cat1_title' => 'category1.cat_title',
-				'cat2_title' => 'category2.cat_title',
-				'cat3_title' => 'category3.cat_title',
-				'cat4_title' => 'category4.cat_title',
+				'content_area' => 'rules.content_area',
+				'category_1' => 'rules.category_1',
+				'category_2' => 'rules.category_2',
+				'category_3' => 'rules.category_3',
+				'category_4' => 'rules.category_4',
 			],
 			[
 				'rules.link_id' => $linkId,
-				"rules.content_area_id IS NOT NULL OR rules.category_id_1 IS NOT NULL",
+				"rules.content_area IS NOT NULL OR rules.category_1 IS NOT NULL",
 			],
 			__METHOD__,
 			[
-				'ORDER BY' => 'priority DESC, fallback ASC, content_area.cat_title, cat1_title ASC'
-					. ', cat2_title ASC, cat3_title ASC, cat4_title ASC'
+				'ORDER BY' => 'priority DESC, fallback ASC, content_area, category_1 ASC'
+					. ', category_2 ASC, category_3 ASC, category_4 ASC'
 			],
-			[
-				'content_area' => [ 'LEFT JOIN', 'content_area.cat_id=rules.content_area_id' ],
-				'category1' => [ 'LEFT JOIN', 'category1.cat_id=rules.category_id_1' ],
-				'category2' => [ 'LEFT JOIN', 'category2.cat_id=rules.category_id_2' ],
-				'category3' => [ 'LEFT JOIN', 'category3.cat_id=rules.category_id_3' ],
-				'category4' => [ 'LEFT JOIN', 'category4.cat_id=rules.category_id_4' ],
-			],
+			[],
 		);
 	}
 
@@ -296,29 +286,25 @@ class KolsherutLinks {
 						cat_rules.fallback, cat_rules.priority, cat_links.url
 					FROM kolsherutlinks_rules AS cat_rules
 					INNER JOIN kolsherutlinks_links AS cat_links ON cat_links.link_id=cat_rules.link_id
-					LEFT JOIN category AS ca ON ca.cat_id=cat_rules.content_area_id
-					LEFT JOIN category AS cat1 ON cat1.cat_id=cat_rules.category_id_1
-					LEFT JOIN category AS cat2 ON cat2.cat_id=cat_rules.category_id_2
-					LEFT JOIN category AS cat3 ON cat3.cat_id=cat_rules.category_id_3
-					LEFT JOIN category AS cat4 ON cat4.cat_id=cat_rules.category_id_4
 					LEFT JOIN page_props AS pp ON (
-						ca.cat_id IS NOT NULL AND pp.pp_propname='{$contentAreaPropName}' AND
-						REPLACE(pp.pp_value, ' ', '_')=ca.cat_title
+						cat_rules.content_area IS NOT NULL
+							AND pp.pp_propname='{$contentAreaPropName}'
+							AND REPLACE(pp.pp_value, ' ', '_')=cat_rules.content_area
 					)
-					LEFT JOIN categorylinks AS cl1 ON (cat1.cat_id IS NOT NULL AND cl1.cl_to=cat1.cat_title)
-					LEFT JOIN categorylinks AS cl2 ON (cat2.cat_id IS NOT NULL AND cl2.cl_to=cat2.cat_title)
-					LEFT JOIN categorylinks AS cl3 ON (cat3.cat_id IS NOT NULL AND cl3.cl_to=cat3.cat_title)
-					LEFT JOIN categorylinks AS cl4 ON (cat4.cat_id IS NOT NULL AND cl4.cl_to=cat4.cat_title)
-					WHERE (cat_rules.content_area_id IS NOT NULL OR cat_rules.category_id_1 IS NOT NULL)
-						AND (cat_rules.content_area_id IS NULL OR pp.pp_page IS NOT NULL)
-						AND (cat_rules.category_id_1 IS NULL OR cl1.cl_from IS NOT NULL)
+					LEFT JOIN categorylinks AS cl1 ON (cl1.cl_to=cat_rules.category_1)
+					LEFT JOIN categorylinks AS cl2 ON (cl2.cl_to=cat_rules.category_2)
+					LEFT JOIN categorylinks AS cl3 ON (cl3.cl_to=cat_rules.category_3)
+					LEFT JOIN categorylinks AS cl4 ON (cl4.cl_to=cat_rules.category_4)
+					WHERE (cat_rules.content_area IS NOT NULL OR cat_rules.category_1 IS NOT NULL)
+						AND (cat_rules.content_area IS NULL OR pp.pp_page IS NOT NULL)
+						AND (cat_rules.category_1 IS NULL OR cl1.cl_from IS NOT NULL)
 						AND (
-							cat_rules.content_area_id IS NULL OR cat_rules.category_id_1 IS NULL OR
+							cat_rules.content_area IS NULL OR cat_rules.category_1 IS NULL OR
 							pp.pp_page=cl1.cl_from
 						)
-						AND (cat_rules.category_id_2 IS NULL OR cl2.cl_from=cl1.cl_from)
-						AND (cat_rules.category_id_3 IS NULL OR cl3.cl_from=cl1.cl_from)
-						AND (cat_rules.category_id_4 IS NULL OR cl4.cl_from=cl1.cl_from)
+						AND (cat_rules.category_2 IS NULL OR cl2.cl_from=cl1.cl_from)
+						AND (cat_rules.category_3 IS NULL OR cl3.cl_from=cl1.cl_from)
+						AND (cat_rules.category_4 IS NULL OR cl4.cl_from=cl1.cl_from)
 						{$whereLinkCategoryRules}
 				ORDER BY page_id ASC, fallback ASC, priority DESC;"
 		);
