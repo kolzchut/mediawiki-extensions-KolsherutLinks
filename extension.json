@@ -34,9 +34,11 @@
   "Hooks": {
     "LoadExtensionSchemaUpdates": "KolsherutLinksHooks",
 		"ParserBeforeInternalParse": "KolsherutLinksHooks",
-    "ParserFirstCallInit": "KolsherutLinksHooks",
-		"UserGetAllRights": "KolsherutLinksHooks"
+    "ParserFirstCallInit": "KolsherutLinksHooks"
   },
+	"AvailableRights": [
+		"manage-kolsherut-links"
+	],
 	"LogTypes": [ "kolsherutlinks" ],
 	"LogNames": {
 			"kolsherutlinks": "kolsherutlinks-name"
