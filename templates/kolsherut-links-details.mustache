@@ -1,0 +1,119 @@
+<p class="ksl-list-link"><a href="{{{listLink.url}}}">{{{listLink.text}}}</a></p>
+
+<!-- links details -->
+<h3>{{link.urlHeader}}</h3>
+<p class="ksl-details-item"><a href="{{{link.url}}}" target="_blank">{{{link.url}}}</a></p>
+<h3>{{link.textHeader}}</h3>
+<p class="ksl-details-item">{{{link.text}}}</p>
+
+<div class="ksl-details-edit">
+	<a class="btn btn-primary" href="{{{editLink.url}}}">{{editLink.label}}</a>
+</div>
+
+<!-- page rules -->
+<h2>{{pageRulesHeader}}</h2>
+{{#pageRules.rows.0}}
+<table class="mw-datatable kolsherut-page-rules">
+	<thead>
+		<tr>
+			<th>{{pageRules.header.page}}</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+	{{#pageRules.rows}}
+		<tr>
+			<td><a target="_blank" href="{{{pageUrl}}}">{{pageTitle}}</a></td>
+			<td>
+				<a class="kolsherutlinks-require-confirmation" data-confirmation-title="{{deleteMsg}}" href="{{{deleteUrl}}}">
+					{{deleteMsg}}
+				</a>
+			</td>
+		</tr>
+	{{/pageRules.rows}}
+	</tbody>
+</table>
+{{/pageRules.rows.0}}
+
+<div class="ksl-details-add-page">
+	<a class="btn btn-primary" href="{{{addPageRule.url}}}">{{addPageRule.label}}</a>
+</div>
+
+<!-- category rules -->
+<h2>{{categoryRulesHeader}}</h2>
+{{#categoryRules.rows.0}}
+<table class="mw-datatable kolsherut-category-rules">
+	<thead>
+		<tr>
+			<th>{{categoryRules.header.contentArea}}</th>
+			<th>{{categoryRules.header.categories}}</th>
+			<th>{{categoryRules.header.fallback}}</th>
+			<th>{{categoryRules.header.priority}}</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+	{{#categoryRules.rows}}
+		<tr>
+			<td>
+				{{#contentAreaUrl}}<a target="_blank" href="{{{.}}}">{{/contentAreaUrl}}
+					{{contentArea}}
+				{{#contentAreaUrl}}</a>{{/contentAreaUrl}}
+			</td>
+			<td>{{{categories}}}</td>
+			<td>{{isFallback}}</td>
+			<td>{{priority}}</td>
+			<td>
+				<a class="kolsherutlinks-require-confirmation" data-confirmation-title="{{deleteMsg}}" href="{{{deleteUrl}}}">
+					{{deleteMsg}}
+				</a>
+			</td>
+		</tr>
+	{{/categoryRules.rows}}
+	</tbody>
+</table>
+{{/categoryRules.rows.0}}
+
+<div class="ksl-details-add-category">
+	<a class="btn btn-primary" href="{{{addCategoryRule.url}}}">{{addCategoryRule.label}}</a>
+</div>
+
+<!-- page assignments -->
+<h2>{{assignmentsHeader}}</h2>
+{{#assignments.rows.0}}
+<ul class="ksl-link-assignments">
+	{{#assignments.rows}}
+	<tr>
+		<li><a target="_blank" href="{{{url}}}">{{title}}</a></li>
+	</tr>
+	{{/assignments.rows}}
+</ul>
+{{/assignments.rows.0}}
+
+{{#assignments.emptyMsg}}
+<p class="ksl-link-assignments-empty">{{.}}</p>
+{{/assignments.emptyMsg}}
+
+<!-- page non-assignments -->
+{{#nonAssignments.rows.0}}
+<h2>{{nonAssignmentsHeader}}</h2>
+<ul class="ksl-link-assignments">
+	{{#nonAssignments.rows}}
+		<li><a target="_blank" href="{{{url}}}">{{title}}</a></li>
+	{{/nonAssignments.rows}}
+</ul>
+{{/nonAssignments.rows.0}}
+
+<!-- delete button -->
+<h2>{{deleteLinkHeader}}</h2>
+<div class="ksl-details-delete">
+	<a class="btn btn-primary kolsherutlinks-require-confirmation" data-confirmation-title="{{deleteLink.label}}" href="{{{deleteLink.url}}}">
+		{{deleteLink.label}}
+	</a>
+</div>
+
+<!-- log link -->
+<h2>{{logHeader}}</h2>
+<div class="ksl-details-log">
+	<a href="{{{logLink.url}}}">{{{logLink.text}}}</a>
+</div>

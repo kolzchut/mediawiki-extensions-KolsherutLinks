@@ -1,0 +1,66 @@
+<p class="ksl-list-link"><a href="{{{listLink.url}}}">{{{listLink.text}}}</a></p>
+<table class="mw-datatable kolsherut-links-rules">
+	<thead>
+		<tr>
+			<th>{{header.page}}</th>
+			<th>{{header.link}}</th>
+			<th>{{header.isAssigned}}</th>
+			<th>{{header.ruleId}}</th>
+			<th>{{header.contentArea}}</th>
+			<th>{{header.categories}}</th>
+			<th>{{header.isFallback}}</th>
+			<th>{{header.priority}}</th>
+		</tr>
+	</thead>
+	<tbody>
+	{{#rows}}
+  	<tr>
+			<td><a target="_blank" href="{{{pageUrl}}}">{{pageTitle}}</a></td>
+			<td><a href="{{{linkDetailsUrl}}}">{{linkUrlToDisplay}}</a></td>
+			<td>{{isAssigned}}</td>
+			<td>{{ruleId}}</td>
+			<td>
+				{{#contentAreaUrl}}<a target="_blank" href="{{{.}}}">{{/contentAreaUrl}}
+					{{contentArea}}
+				{{#contentAreaUrl}}</a>{{/contentAreaUrl}}
+			</td>
+			<td>{{{categories}}}</td>
+			<td>{{isFallback}}</td>
+			<td>{{priority}}</td>
+		</tr>
+	{{/rows}}
+	</tbody>
+	<tfoot>
+		<tr>
+			<th>{{header.page}}</th>
+			<th>{{header.link}}</th>
+			<th>{{header.isAssigned}}</th>
+			<th>{{header.ruleId}}</th>
+			<th>{{header.contentArea}}</th>
+			<th>{{header.categories}}</th>
+			<th>{{header.isFallback}}</th>
+			<th>{{header.priority}}</th>
+		</tr>
+	</tfoot>
+</table>
+<!-- pager -->
+<div class="kolsherutlinks-list-pager tablesorter-pager">
+	<form>
+		<div class="pager-button first"></div>
+		<div class="pager-button prev"></div>
+		<span
+			class="pagedisplay"
+			data-pager-output-filtered
+				="{startRow:input} &ndash; {endRow} / {filteredRows} of {totalRows} total rows"
+		></span>
+		<div class="pager-button next"></div>
+		<div class="pager-button last"></div>
+		<select class="pagesize">
+			<option value="10">10</option>
+			<option value="20">20</option>
+			<option value="30">30</option>
+			<option value="40">40</option>
+			<option value="all">All Rows</option>
+		</select>
+	</form>
+</div>

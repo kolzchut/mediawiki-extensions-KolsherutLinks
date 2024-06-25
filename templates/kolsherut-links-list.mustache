@@ -1,0 +1,63 @@
+<p class="ksl-list-link"><a href="{{{rulesLink.url}}}">{{{rulesLink.text}}}</a></p>
+<div class="ksl-links-add">
+	<a class="btn btn-primary" href="{{{addLink.url}}}">{{{addLink.label}}}</a>
+</div>
+<table class="mw-datatable kolsherut-links-links">
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>{{header.url}}</th>
+			<th>{{header.text}}</th>
+			<th>{{header.pageCount}}</th>
+			<th>{{header.categories}}</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+	{{#rows}}
+  	<tr>
+			<td>{{linkId}}</td>
+			<td><a href="{{{detailsUrl}}}">{{detailsUrlToDisplay}}</a></td>
+			<td>{{{text}}}</td>
+			<td>{{pageCount}}</td>
+			<td>{{{categories}}}</td>
+			<td>
+				<a class="kolsherutlinks-require-confirmation" data-confirmation-title="{{deleteMsg}}" href="{{{deleteUrl}}}">
+					{{deleteText}}
+				</a>
+			</td>
+		</tr>
+	{{/rows}}
+	</tbody>
+	<tfoot>
+		<tr>
+			<th>ID</th>
+			<th>{{header.url}}</th>
+			<th>{{header.text}}</th>
+			<th>{{header.pageCount}}</th>
+			<th>{{header.categories}}</th>
+			<th></th>
+		</tr>
+	</tfoot>
+</table>
+<!-- pager -->
+<div class="kolsherutlinks-list-pager tablesorter-pager">
+	<form>
+		<div class="pager-button first"></div>
+		<div class="pager-button prev"></div>
+		<span
+			class="pagedisplay"
+			data-pager-output-filtered
+				="{startRow:input} &ndash; {endRow} / {filteredRows} of {totalRows} total rows"
+		></span>
+		<div class="pager-button next"></div>
+		<div class="pager-button last"></div>
+		<select class="pagesize">
+			<option value="10">10</option>
+			<option value="20">20</option>
+			<option value="30">30</option>
+			<option value="40">40</option>
+			<option value="all">All Rows</option>
+		</select>
+	</form>
+</div>

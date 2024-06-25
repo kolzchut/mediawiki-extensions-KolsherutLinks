@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\KolsherutLinks;
 use Category;
 use Sanitizer;
 use SpecialPage;
+use TemplateParser;
 
 /**
  * Filterable list view of Kol Sherut links and display rules.
@@ -35,13 +36,6 @@ class SpecialKolsherutLinksList extends SpecialPage {
 		$output = $this->getOutput();
 		$this->setHeaders();
 
-		// Link back to list page
-		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksRules' );
-		$output->addHTML(
-			'<p class="ksl-list-link"><a href="' . $listPage->getLocalURL() . '">'
-			. $this->msg( 'kolsherutlinks-details-all-rules-link' )->text() . '</a></p>'
-		);
-
 		// Query all rules and pull their categories.
 		$linksCategories = [];
 		$res = KolsherutLinks::getAllRules();
@@ -55,91 +49,64 @@ class SpecialKolsherutLinksList extends SpecialPage {
 			}
 		}
 
+		// Prepare page body template.
+		$templateParser = new TemplateParser( __DIR__ . '/../templates' );
+		$templateData = [];
+
 		// Provide link to add new link.
 		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksDetails' );
-		$addUrl = $detailsPage->getLocalURL( [ 'op' => 'create' ] );
-		$output->addHTML( '
-			<div class="ksl-links-add">
-				<a class="btn btn-primary" href="' . $addUrl . '">' . $this->msg( 'kolsherutlinks-list-op-add' ) . '</a>
-			</div>
-		' );
+		$templateData['addLink'] = [
+			'url' => $detailsPage->getLocalURL( [ 'op' => 'create' ] ),
+			'label' => $this->msg( 'kolsherutlinks-list-op-add' )->text(),
+		];
 
 		// Build sortable table with dynamic column seaching and pager.
+		$templateData['header'] = [
+			'url' => $this->msg( 'kolsherutlinks-list-header-url' )->text(),
+			'text' => $this->msg( 'kolsherutlinks-list-header-text' )->text(),
+			'pageCount' => $this->msg( 'kolsherutlinks-list-header-pagecount' )->text(),
+			'categories' => $this->msg( 'kolsherutlinks-list-header-categories' )->text(),
+		];
+		$templateData['rows'] = [];
 		$output->allowClickjacking();
 		$output->addModules( [ 'ext.KolsherutLinks.list', 'ext.KolsherutLinks.confirmation' ] );
-		$output->addHTML( '
-			<table class="mw-datatable kolsherut-links-links">
-				<thead>
-					<tr>
-						<th>ID</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-url' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-text' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-pagecount' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-categories' ) . '</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tfoot>
-					<tr>
-						<th>ID</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-url' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-text' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-pagecount' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-list-header-categories' ) . '</th>
-						<th></th>
-					</tr>
-				</tfoot>
-				<tbody>
-		' );
 		$res = KolsherutLinks::getAllLinks();
+		$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' )->text();
+		$deleteText = $this->msg( 'kolsherutlinks-list-op-delete' )->text();
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$link_id = $row['link_id'];
-			$urlToDisplay = strlen( $row['url'] ) > 45 ? ( substr( $row['url'], 0, 42 ) . '...' ) : $row['url'];
-			$detailsUrl = $detailsPage->getLocalURL( [ 'link_id' => $link_id ] );
-			$deleteUrl = $detailsPage->getLocalURL( [ 'link_id' => $link_id, 'op' => 'delete' ] );
+			// Category links list.
+			$linkId = $row['link_id'];
 			$categories = '';
-			if ( !empty( $linksCategories[ $link_id ] ) ) {
-				asort( $linksCategories[ $link_id ] );
-				$categories = implode( ', ', $linksCategories[ $link_id ] );
+			if ( !empty( $linksCategories[ $linkId ] ) ) {
+				asort( $linksCategories[ $linkId ] );
+				$categories = implode( ', ', $linksCategories[ $linkId ] );
 			}
-			$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' );
-			$output->addHTML(
-				'<tr>'
-				. '<td>' . $link_id . '</td>'
-				. '<td><a href="' . $detailsUrl . '">' . $urlToDisplay . '</a></td>'
-				. '<td>' . Sanitizer::decodeCharReferences( $row['text'] ) . '</td>'
-				. '<td>' . $row['pagecount'] . '</td>'
-				. '<td>' . $categories . '</td>'
-				. '<td><a class="kolsherutlinks-require-confirmation" data-confirmation-title="' . $deleteMsg
-					. '" href="' . $deleteUrl . '">' . $this->msg( 'kolsherutlinks-list-op-delete' ) . '</a></td>'
-				. '</tr>'
-			);
+			// Build table row.
+			$templateData['rows'][] = [
+				'linkId' => $linkId,
+				'detailsUrl' => $detailsPage->getLocalURL( [ 'link_id' => $linkId ] ),
+				'detailsUrlToDisplay' =>
+					strlen( $row['url'] ) > 45 ? ( substr( $row['url'], 0, 42 ) . '...' ) : $row['url'],
+				'text' => Sanitizer::decodeCharReferences( $row['text'] ),
+				'pageCount' => $row['pagecount'],
+				'categories' => $categories,
+				'deleteMsg' => $deleteMsg,
+				'deleteUrl' => $detailsPage->getLocalURL( [ 'link_id' => $linkId, 'op' => 'delete' ] ),
+				'deleteText' => $deleteText,
+			];
 		}
-		$output->addHTML( '
-				</tbody>
-			</table>
-			<!-- pager -->
-			<div class="kolsherutlinks-list-pager tablesorter-pager">
-				<form>
-					<div class="pager-button first"></div>
-					<div class="pager-button prev"></div>
-					<span
-						class="pagedisplay"
-						data-pager-output-filtered
-							="{startRow:input} &ndash; {endRow} / {filteredRows} of {totalRows} total rows"
-					></span>
-					<div class="pager-button next"></div>
-					<div class="pager-button last"></div>
-					<select class="pagesize">
-						<option value="10">10</option>
-						<option value="20">20</option>
-						<option value="30">30</option>
-						<option value="40">40</option>
-						<option value="all">All Rows</option>
-					</select>
-				</form>
-			</div>
-		' );
+
+		// Provide link back to all rules page.
+		$rulesPage = SpecialPage::getTitleFor( 'KolsherutLinksRules' );
+		$templateData['rulesLink'] = [
+			'url' => $rulesPage->getLocalURL(),
+			'text' => $this->msg( 'kolsherutlinks-details-all-rules-link' )->text(),
+		];
+
+		// Process template and output.
+		$output->addHTML(
+			$templateParser->processTemplate( 'kolsherut-links-list', $templateData )
+		);
 	}
 
 }

@@ -7,6 +7,7 @@ use ExtensionRegistry;
 use HTMLForm;
 use MWException;
 use SpecialPage;
+use TemplateParser;
 use Title;
 use WikiPage;
 
@@ -118,96 +119,87 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 		$output = $this->getOutput();
 		$output->addModules( 'ext.KolsherutLinks.details' );
 
-		// Link back to list page
-		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
-		$output->addHTML(
-			'<p class="ksl-list-link"><a href="' . $listPage->getLocalURL() . '">'
-			. $this->msg( 'kolsherutlinks-details-back-to-list' )->text() . '</a></p>'
-		);
+		// Prepare page body template.
+		$templateParser = new TemplateParser( __DIR__ . '/../templates' );
+		$templateData = [];
 
 		// Basic link details
 		$link = KolsherutLinks::getLinkDetails( $linkId );
-		$output->addHTML( "<h3>" . $this->msg( 'kolsherutlinks-details-label-url' ) . "</h3>" );
-		$output->addHTML(
-			"<p class=\"ksl-details-item\"><a href=\"{$link['url']}\" target=\"_blank\">{$link['url']}</a></p>"
-		);
-		$output->addHTML( "<h3>" . $this->msg( 'kolsherutlinks-details-label-text' ) . "</h3>" );
-		$output->addHTML( '<p class="ksl-details-item">' . $link['text'] . '</p>' );
+		$templateData['link'] = [
+			'urlHeader' => $this->msg( 'kolsherutlinks-details-label-url' )->text(),
+			'url' => $link['url'],
+			'textHeader' => $this->msg( 'kolsherutlinks-details-label-text' )->text(),
+			'text' => $link['text'],
+		];
 
-		// Edit button.
-		$editUrl = $output->getTitle()->getLocalURL( [ 'op' => 'edit', 'link_id' => $linkId ] );
-		$output->addHTML( '
-			<div class="ksl-details-edit">
-				<a class="btn btn-primary" href="' . $editUrl . '">'
-				. $this->msg( 'kolsherutlinks-details-op-edit' )
-				. '</a>
-			</div>
-		' );
+		// Link details edit button.
+		$templateData['editLink'] = [
+			'url' => $output->getTitle()->getLocalURL( [ 'op' => 'edit', 'link_id' => $linkId ] ),
+			'label' => $this->msg( 'kolsherutlinks-details-op-edit' )->text(),
+		];
 
 		// Page rules
-		$output->addHTML( '<h2>' . $this->msg( 'kolsherutlinks-details-label-page-rules' ) . '</h2>' );
-		$tableBody = '';
-		$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' );
+		$templateData['pageRulesHeader'] = $this->msg( 'kolsherutlinks-details-label-page-rules' )->text();
+		$templateData['pageRules'] = [
+			'header' => [
+				'page' => $this->msg( 'kolsherutlinks-details-rule-header-page' )->text(),
+			],
+			'rows' => [],
+		];
+		$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' )->text();
 		$res = KolsherutLinks::getLinkRules( $linkId );
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$page = Title::newFromID( $row['page_id'] );
-			$tableBody .= '<tr>';
-			// Page title with link (in new tab/window)
-			$pageUrl = $page->getLocalURL();
-			$pageTitle = $page->getTitleValue()->getText();
-			$tableBody .= "<td><a target=\"_blank\" href=\"{$pageUrl}\">{$pageTitle}</a></td>";
-			// Link to delete this rule
-			$deleteRuleUrl = $output->getTitle()->getLocalURL( [
-				'op' => 'delete_rule',
-				'rule_id' => $row['rule_id'],
-				'link_id' => $linkId,
-			] );
-			$tableBody .= '<td><a class="kolsherutlinks-require-confirmation" data-confirmation-title="' . $deleteMsg
-			  . '" href="' . $deleteRuleUrl . '">' . $deleteMsg . '</a></td>';
-			$tableBody .= "</tr>";
-		}
-		if ( !empty( $tableBody ) ) {
-			$output->addHTML( '
-				<table class="mw-datatable kolsherut-page-rules">
-					<thead>
-						<tr>
-							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-page' ) . '</th>
-							<th></th>
-						</tr>
-					</thead>
-					<tbody>' . $tableBody . '</tbody>
-				</table>
-			' );
+			$templateData['pageRules']['rows'][] = [
+				// Page title with link (in new tab/window)
+				'pageUrl' => $page->getLocalURL(),
+				'pageTitle' => $page->getTitleValue()->getText(),
+				// Link to delete this rule
+				'deleteUrl' => $output->getTitle()->getLocalURL( [
+					'op' => 'delete_rule',
+					'rule_id' => $row['rule_id'],
+					'link_id' => $linkId,
+				] ),
+				'deleteMsg' => $deleteMsg,
+			];
 		}
 
 		// Add page rule button
-		$addPageUrl = $output->getTitle()->getLocalURL( [ 'op' => 'add_page', 'link_id' => $linkId ] );
-		$output->addHTML( '
-			<div class="ksl-details-add-page">
-				<a class="btn btn-primary" href="' . $addPageUrl . '">'
-				. $this->msg( 'kolsherutlinks-details-op-add-page' )
-				. '</a>
-			</div>
-		' );
+		$templateData['addPageRule'] = [
+			'url' => $output->getTitle()->getLocalURL( [ 'op' => 'add_page', 'link_id' => $linkId ] ),
+			'label' => $this->msg( 'kolsherutlinks-details-op-add-page' )->text(),
+		];
 
 		// Category rules
-		$output->addHTML( '<h2>' . $this->msg( 'kolsherutlinks-details-label-category-rules' ) . '</h2>' );
+		$templateData['categoryRulesHeader'] = $this->msg( 'kolsherutlinks-details-label-category-rules' )->text();
+		$templateData['categoryRules'] = [
+			'header' => [
+				'contentArea' => $this->msg( 'kolsherutlinks-details-rule-header-content-area' )->text(),
+				'categories' => $this->msg( 'kolsherutlinks-details-rule-header-categories' )->text(),
+				'fallback' => $this->msg( 'kolsherutlinks-details-rule-header-fallback' )->text(),
+				'priority' => $this->msg( 'kolsherutlinks-details-rule-header-priority' )->text(),
+			],
+			'rows' => [],
+		];
+		$output->allowClickjacking();
+		$output->addModules( [ 'ext.KolsherutLinks.list', 'ext.KolsherutLinks.confirmation' ] );
+		$res = KolsherutLinks::getAllLinks();
+		$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' )->text();
 		$res = KolsherutLinks::getLinkCategoryRules( $linkId );
-		$tableBody = '';
-		$deleteMsg = $this->msg( 'kolsherutlinks-list-op-delete' );
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$tableBody .= '<tr>';
 			// Content area name with link (in new tab/window)
 			if ( !empty( $row['content_area'] ) ) {
 				$category = Category::newFromName( $row['content_area'] );
 				if ( !empty( $category ) ) {
-					$tableBody .= '<td><a target="_blank" href="' . $category->getTitle()->getLocalURL() . '">'
-					. $category->getTitle()->getBaseText() . '</a></td>';
+					$contentArea = $category->getTitle()->getBaseText();
+					$contentAreaUrl = $category->getTitle()->getLocalURL();
 				} else {
-					$tableBody .= $row['content_area'];
+					$contentArea = $row['content_area'];
+					$contentAreaUrl = false;
 				}
 			} else {
-				$tableBody .= '<td></td>';
+				$contentArea = '-';
+				$contentAreaUrl = false;
 			}
 			// Category name(s) with link(s) (in new tab/window)
 			if ( !empty( $row['category_1'] ) ) {
@@ -223,106 +215,94 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 						$links[] = $categoryName;
 					}
 				}
-				$tableBody .= '<td>' . implode( ' + ', $links ) . '</td>';
+				$categories = implode( ' + ', $links ) . '</td>';
 			} else {
-				$tableBody .= '<td></td>';
+				$categories = '-';
 			}
-			// Is fallback?
-			$tableBody .= '<td>' . ( $row['fallback'] ? 'X' : '' ) . '</td>';
-			// Priority score
-			$tableBody .= "<td>{$row['priority']}</td>";
-			// Link to delete this rule
-			$deleteRuleUrl = $output->getTitle()->getLocalURL( [
-				'op' => 'delete_rule',
-				'rule_id' => $row['rule_id'],
-				'link_id' => $linkId,
-			] );
-			$tableBody .= '<td><a class="kolsherutlinks-require-confirmation" data-confirmation-title="' . $deleteMsg
-			  . '" href="' . $deleteRuleUrl . '">' . $deleteMsg . '</a></td>';
-			$tableBody .= "</tr>";
-		}
-		if ( !empty( $tableBody ) ) {
-			$output->addHTML( '
-				<table class="mw-datatable kolsherut-category-rules">
-					<thead>
-						<tr>
-							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-content-area' ) . '</th>
-							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-categories' ) . '</th>
-							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-fallback' ) . '</th>
-							<th>' . $this->msg( 'kolsherutlinks-details-rule-header-priority' ) . '</th>
-							<th></th>
-						</tr>
-					</thead>
-					<tbody>' . $tableBody . '</tbody>
-				</table>
-			' );
+			$templateData['categoryRules']['rows'][] = [
+				'contentArea' => $contentArea,
+				'contentAreaUrl' => $contentAreaUrl,
+				'categories' => $categories,
+				// Is fallback?
+				'isFallback' => $row['fallback'] ? 'X' : '',
+				// Priority score
+				'priority' => $row['priority'],
+				// Link to delete this rule
+				'deleteMsg' => $deleteMsg,
+				'deleteUrl' => $output->getTitle()->getLocalURL( [
+					'op' => 'delete_rule',
+					'rule_id' => $row['rule_id'],
+					'link_id' => $linkId,
+				] ),
+			];
 		}
 
 		// Add category/ies rule button
-		$addCategoryUrl = $output->getTitle()->getLocalURL( [ 'op' => 'add_category', 'link_id' => $linkId ] );
-		$output->addHTML( '
-			<div class="ksl-details-add-category">
-				<a class="btn btn-primary" href="' . $addCategoryUrl . '">'
-				. $this->msg( 'kolsherutlinks-details-op-add-category' )
-				. '</a>
-			</div>
-		' );
+		$templateData['addCategoryRule'] = [
+			'url' => $output->getTitle()->getLocalURL( [ 'op' => 'add_category', 'link_id' => $linkId ] ),
+			'label' => $this->msg( 'kolsherutlinks-details-op-add-category' )->text(),
+		];
 
 		// Link assignments
-		$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-assignments' ) . "</h2>" );
+		$templateData['assignmentsHeader'] = $this->msg( 'kolsherutlinks-details-title-assignments' )->text();
+		$templateData['assignments']['rows'] = [];
 		$res = KolsherutLinks::getPageAssignments( $linkId );
 		$assignedPageIds = [];
-		$listBody = '';
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			$title = WikiPage::newFromID( $row['page_id'] )->getTitle();
-			$listBody .= '<li><a href="' . $title->getLocalURL() . '">' . $title->getBaseText() . '</a></li>';
 			$assignedPageIds[ $row['page_id'] ] = $row['page_id'];
+			$templateData['assignments']['rows'][] = [
+				'url' => $title->getLocalURL(),
+				'title' => $title->getBaseText(),
+			];
 		}
-		if ( !empty( $listBody ) ) {
-			$output->addHTML( '<ul class="ksl-link-assignments">' . $listBody . '</ul>' );
-		} else {
-			$output->addHTML( '<p class="ksl-link-assignments-empty">'
-				. $this->msg( 'kolsherutlinks-details-assignments-empty' )->text() . '</p>' );
+		if ( empty( $templateData['assignments']['rows'] ) ) {
+			$templateData['assignments']['emptyMsg'] = $this->msg( 'kolsherutlinks-details-assignments-empty' )->text();
 		}
 
 		// Link non-assignments
+		$templateData['nonAssignmentsHeader'] = $this->msg( 'kolsherutlinks-details-title-nonassignments' )->text();
+		$templateData['nonAssignments']['rows'] = [];
 		$res = KolsherutLinks::getPossibleAssignments( $linkId );
-		$listBody = '';
 		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
 			if ( !empty( $assignedPageIds[ $row['page_id'] ] ) ) {
 				continue;
 			}
 			$title = WikiPage::newFromID( $row['page_id'] )->getTitle();
-			$listBody .= '<li><a href="' . $title->getLocalURL() . '">' . $title->getBaseText() . '</a></li>';
-		}
-		if ( !empty( $listBody ) ) {
-			$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-nonassignments' ) . "</h2>" );
-			$output->addHTML( '<ul class="ksl-link-assignments">' . $listBody . '</ul>' );
+			$templateData['nonAssignments']['rows'][] = [
+				'url' => $title->getLocalURL(),
+				'title' => $title->getBaseText(),
+			];
 		}
 
 		// Delete link button
-		$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-delete' ) . "</h2>" );
-		$deleteLinkUrl = $output->getTitle()->getLocalURL( [ 'op' => 'delete', 'link_id' => $linkId ] );
-		$deleteMsg = $this->msg( 'kolsherutlinks-details-op-link-delete' );
-		$output->addHTML( '
-			<div class="ksl-details-delete">
-				<a class="btn btn-primary kolsherutlinks-require-confirmation" data-confirmation-title="' . $deleteMsg
-					. '" href="' . $deleteLinkUrl . '">' . $deleteMsg
-				. '</a>
-			</div>
-		' );
+		$templateData['deleteLinkHeader'] = $this->msg( 'kolsherutlinks-details-title-delete' )->text();
+		$templateData['deleteLink'] = [
+			'url' => $output->getTitle()->getLocalURL( [ 'op' => 'delete', 'link_id' => $linkId ] ),
+			'label' => $this->msg( 'kolsherutlinks-details-op-link-delete' )->text(),
+		];
 
 		// Log link
-		$output->addHTML( "<h2>" . $this->msg( 'kolsherutlinks-details-title-log' ) . "</h2>" );
-		$logLink = SpecialPage::getTitleFor( 'Log' )->getLocalURL( [
-			'type' => 'kolsherutlinks',
-			'page' => SpecialPage::getTitleFor( 'KolsherutLinksDetails' )->getBaseTitle() . '/' . $linkId
-		] );
-		$output->addHTML( '
-			<div class="ksl-details-log">
-				<a href="' . $logLink . '">' . $this->msg( 'kolsherutlinks-details-log-link' ) . '</a>
-			</div>
-		' );
+		$templateData['logHeader'] = $this->msg( 'kolsherutlinks-details-title-log' )->text();
+		$templateData['logLink'] = [
+			'url' => SpecialPage::getTitleFor( 'Log' )->getLocalURL( [
+				'type' => 'kolsherutlinks',
+				'page' => SpecialPage::getTitleFor( 'KolsherutLinksDetails' )->getBaseTitle() . '/' . $linkId
+			] ),
+			'text' => $this->msg( 'kolsherutlinks-details-log-link' )->text(),
+		];
+
+		// Provide link back to list page.
+		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
+		$templateData['listLink'] = [
+			'url' => $listPage->getLocalURL(),
+			'text' => $this->msg( 'kolsherutlinks-details-back-to-list' )->text(),
+		];
+
+		// Process template and output.
+		$output->addHTML(
+			$templateParser->processTemplate( 'kolsherut-links-details', $templateData )
+		);
 	}
 
 	/**

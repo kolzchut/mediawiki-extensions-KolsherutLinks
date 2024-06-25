@@ -3,7 +3,9 @@
 namespace MediaWiki\Extension\KolsherutLinks;
 
 use Category;
+use Html;
 use SpecialPage;
+use TemplateParser;
 use Title;
 
 /**
@@ -35,13 +37,6 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 		$output = $this->getOutput();
 		$this->setHeaders();
 
-		// Provide link back to list page.
-		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
-		$output->addHTML(
-			'<p class="ksl-list-link"><a href="' . $listPage->getLocalURL() . '">'
-			. $this->msg( 'kolsherutlinks-details-back-to-list' )->text() . '</a></p>'
-		);
-
 		// We need all rules, assignments, and potential assignments.
 		$resPossibleAssignments = KolsherutLinks::getPossibleAssignments();
 		$resAssignments = KolsherutLinks::getPageAssignments();
@@ -59,37 +54,24 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 			$assignments[ $row['page_id'] ][ $row['link_id'] ] = $row['link_id'];
 		}
 
+		// Prepare page body template.
+		$templateParser = new TemplateParser( __DIR__ . '/../templates' );
+		$templateData = [];
+
 		// Build sortable table with dynamic column seaching and pager.
+		$templateData['header'] = [
+			'page' => $this->msg( 'kolsherutlinks-rules-header-page' )->text(),
+			'link' => $this->msg( 'kolsherutlinks-rules-header-rule-link' )->text(),
+			'isAssigned' => $this->msg( 'kolsherutlinks-rules-header-rule-is-assigned' )->text(),
+			'ruleId' => $this->msg( 'kolsherutlinks-rules-header-rule-id' )->text(),
+			'contentArea' => $this->msg( 'kolsherutlinks-rules-header-rule-content-area' )->text(),
+			'categories' => $this->msg( 'kolsherutlinks-rules-header-rule-categories' )->text(),
+			'isFallback' => $this->msg( 'kolsherutlinks-rules-header-rule-is-fallback' )->text(),
+			'priority' => $this->msg( 'kolsherutlinks-rules-header-rule-priority' )->text(),
+		];
+		$templateData['rows'] = [];
 		$output->allowClickjacking();
 		$output->addModules( [ 'ext.KolsherutLinks.list' ] );
-		$output->addHTML( '
-			<table class="mw-datatable kolsherut-links-rules">
-				<thead>
-					<tr>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-page' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-link' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-is-assigned' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-id' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-content-area' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-categories' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-is-fallback' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-priority' ) . '</th>
-					</tr>
-				</thead>
-				<tfoot>
-					<tr>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-page' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-link' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-is-assigned' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-id' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-content-area' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-categories' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-is-fallback' ) . '</th>
-						<th>' . $this->msg( 'kolsherutlinks-rules-header-rule-priority' ) . '</th>
-					</tr>
-				</tfoot>
-				<tbody>
-		' );
 		$detailsPage = SpecialPage::getTitleFor( 'KolsherutLinksDetails' );
 		for (
 			$possibleAssignment = $resPossibleAssignments->fetchRow();
@@ -98,36 +80,31 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 		) {
 			// Collate data about the possible assignment and the link and rule involved.
 			$link_id = $possibleAssignment['link_id'];
-			$linkDetailsUrl = $detailsPage->getLocalURL( [ 'link_id' => $link_id ] );
 			$rule = $rules[ $possibleAssignment['rule_id'] ];
 
 			// Build table row.
-			$tableRow = '<tr>';
+			$row = [];
 			// Page name with link (in new tab/window)
 			$page = Title::newFromID( $possibleAssignment['page_id'] );
-			$tableRow .= '<td><a target="_blank" href="' . $page->getLocalURL() . '">' . $page->getBaseText()
-				. '</a></td>';
+			$row['pageUrl'] = $page->getLocalURL();
+			$row['pageTitle'] = $page->getBaseText();
 			// Link URL and admin
-			$urlToDisplay = strlen( $rule['link_url'] ) > 45 ?
+			$row['linkDetailsUrl'] = $detailsPage->getLocalURL( [ 'link_id' => $link_id ] );
+			$row['linkUrlToDisplay'] = strlen( $rule['link_url'] ) > 45 ?
 				( substr( $rule['link_url'], 0, 42 ) . '...' ) : $rule['link_url'];
-			$tableRow .= '<td><a href="' . $linkDetailsUrl . '">' . $urlToDisplay . '</a></td>';
 			// Currently has a page assignment?
-			$tableRow .= '<td>'
-				. ( !empty( $assignments[ $possibleAssignment['page_id'] ][ $rule['link_id'] ] ) ? 'X' : '-' )
-				. '</td>';
+			$row['isAssigned'] = !empty( $assignments[ $possibleAssignment['page_id'] ][ $rule['link_id'] ] ) ?
+				'X' : '-';
 			// Rule ID
-			$tableRow .= '<td>' . $possibleAssignment['rule_id'] . '</td>';
+			$row['ruleId'] = $possibleAssignment['rule_id'];
 			// Content area name with link (in new tab/window)
 			if ( !empty( $rule['content_area'] ) ) {
 				$category = Category::newFromName( $rule['content_area'] );
-				if ( !empty( $category ) ) {
-					$tableRow .= '<td><a target="_blank" href="' . $category->getTitle()->getLocalURL() . '">'
-					. $category->getTitle()->getBaseText() . '</a></td>';
-				} else {
-					$tableRow .= '<td>' . $rule['content_area'] . '</td>';
-				}
+				$row['contentArea'] = !empty( $category ) ? $category->getTitle()->getBaseText() :
+					$rule['content_area'];
+				$row['contentAreaUrl'] = !empty( $category ) ? $category->getTitle()->getLocalURL() : false;
 			} else {
-				$tableRow .= '<td>-</td>';
+				$row['contentArea'] = '-';
 			}
 			// Category name(s) with link(s) (in new tab/window)
 			if ( !empty( $rule['category_1'] ) ) {
@@ -137,49 +114,39 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 				] ) as $categoryName ) {
 					$category = Category::newFromName( $categoryName );
 					if ( !empty( $category ) ) {
-						$links[] = '<a target="_blank" href="' . $category->getTitle()->getLocalURL() . '">'
-						. $category->getTitle()->getBaseText() . '</a>';
+						$links[] = Html::openElement( 'a', [
+							'target' => '_blank',
+							'href' => $category->getTitle()->getLocalURL()
+						] )
+						. $category->getTitle()->getBaseText()
+						. Html::closeElement( 'a' );
 					} else {
 						$links[] = $categoryName;
 					}
 				}
-				$tableRow .= '<td>' . implode( ' + ', $links ) . '</td>';
+				$row['categories'] = implode( ' + ', $links );
 			} else {
-				$tableRow .= '<td>-</td>';
+				$row['categories'] = '-';
 			}
 			// Is fallback?
-			$tableRow .= '<td>' . ( $rule['fallback'] ? 'X' : '-' ) . '</td>';
+			$row['isFallback'] = $rule['fallback'] ? 'X' : '-';
 			// Priority score
-			$tableRow .= "<td>{$rule['priority']}</td>";
+			$row['priority'] = $rule['priority'];
 			// Close row and output.
-			$tableRow .= '</tr>';
-			$output->addHTML( $tableRow );
+			$templateData['rows'][] = $row;
 		}
-		$output->addHTML( '
-				</tbody>
-			</table>
-			<!-- pager -->
-			<div class="kolsherutlinks-list-pager tablesorter-pager">
-				<form>
-					<div class="pager-button first"></div>
-					<div class="pager-button prev"></div>
-					<span
-						class="pagedisplay"
-						data-pager-output-filtered
-							="{startRow:input} &ndash; {endRow} / {filteredRows} of {totalRows} total rows"
-					></span>
-					<div class="pager-button next"></div>
-					<div class="pager-button last"></div>
-					<select class="pagesize">
-						<option value="10">10</option>
-						<option value="20">20</option>
-						<option value="30">30</option>
-						<option value="40">40</option>
-						<option value="all">All Rows</option>
-					</select>
-				</form>
-			</div>
-		' );
+
+		// Provide link back to list page.
+		$listPage = SpecialPage::getTitleFor( 'KolsherutLinksList' );
+		$templateData['listLink'] = [
+			'url' => $listPage->getLocalURL(),
+			'text' => $this->msg( 'kolsherutlinks-details-back-to-list' )->text(),
+		];
+
+		// Process template and output.
+		$output->addHTML(
+			$templateParser->processTemplate( 'kolsherut-links-rules', $templateData )
+		);
 	}
 
 }
