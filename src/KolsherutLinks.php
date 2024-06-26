@@ -257,20 +257,6 @@ class KolsherutLinks {
 	}
 
 	/**
-	 * @return \IResultWrapper
-	 */
-	public static function getAllContentAreas() {
-		$dbr = wfGetDB( DB_REPLICA );
-		return $dbr->select(
-			[ 'page_props' => 'page_props' ],
-			[ 'page_props.pp_value' ],
-			"page_props.pp_propname = 'ArticleContentArea' and pp_value <> ''",
-			__METHOD__,
-			[ 'GROUP BY' => 'pp_value', 'ORDER BY' => 'pp_value ASC' ],
-		);
-	}
-
-	/**
 	 * Query all possible assignments based on current rules,
 	 * optionally limited to a single link's rules.
 	 * Single giant query optimized for performance, because

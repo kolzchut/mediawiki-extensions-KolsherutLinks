@@ -99,8 +99,10 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 					->setSubmitTextMsg( 'kolsherutlinks-details-rule-submit' )
 					->setSubmitCallback( [ $this, 'handleCategoryRuleSave' ] )
 					->show();
+				$contentAreas = ExtensionRegistry::getInstance()->isLoaded( 'ArticleContentArea' ) ?
+					\MediaWiki\Extension\ArticleContentArea\ArticleContentArea::getAssignedContentAreas() : [];
 				$output->addJsConfigVars( [
-					'kslAllContentAreas' => array_values( $this->getAllContentAreas() ),
+					'kslAllContentAreas' => array_values( $contentAreas ),
 					'kslAllCategories' => array_values( $this->getAllCategories() ),
 				] );
 				$output->addModules( 'ext.KolsherutLinks.catRule' );
@@ -682,31 +684,5 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			$categories[ $category->getName() ] = $category->getTitle()->getBaseText();
 		}
 		return $categories;
-	}
-
-	/**
-	 * Utility to query and return all content area category IDs and names.
-	 * Includes only those that are actually in use (i.e., tagged to articles)
-	 * not necessarily all that would be considered "valid".
-	 *
-	 * Differs from ArticleContentArea::getValidContentAreas() in two ways:
-	 * 1) Returns values even if $wgArticleContentAreaCategoryName is null
-	 * 2) Returns only the values in active use as content areas.
-	 *
-	 * @return array
-	 */
-	private function getAllContentAreas() {
-		static $contentAreas;
-		// Do this expensive thing only once.
-		if ( isset( $contentAreas ) ) {
-			return $contentAreas;
-		}
-		$contentAreas = [];
-		$res = KolsherutLinks::getAllContentAreas();
-		for ( $row = $res->fetchRow(); is_array( $row ); $row = $res->fetchRow() ) {
-			$category = Category::newFromName( $row['pp_value'] );
-			$contentAreas[ $category->getName() ] = $category->getTitle()->getBaseText();
-		}
-		return $contentAreas;
 	}
 }
