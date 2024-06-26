@@ -547,10 +547,9 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 
 		// Verify content area name
 		if ( !empty( $postData['kslContentAreaName'] ) ) {
-			$contentArea = Category::newFromName( $postData[ 'kslContentAreaName' ] );
-			if ( !$contentArea || empty( $contentArea->getID() ) ) {
+			if ( !KolsherutLinks::isValidContentArea( $postData[ 'kslContentAreaName' ] ) ) {
 				// No. Stop processing and re-prompt for a valid name.
-				return [ [ 'kolsherutlinks-details-error-category-not-found', $postData[ 'kslContentAreaName' ] ] ];
+				return [ [ 'kolsherutlinks-details-error-invalid-content-area', $postData[ 'kslContentAreaName' ] ] ];
 			}
 		}
 
@@ -577,11 +576,11 @@ class SpecialKolsherutLinksDetails extends SpecialPage {
 			'fallback' => ( $postData[ 'kslFallback' ] ? 1 : 0 ),
 			'priority' => $this->calculatePriority( [
 				'category' => count( $categories ),
-				'content_area' => !empty( $contentArea ),
+				'content_area' => !empty( $postData['kslContentAreaName'] ),
 			] ),
 		];
-		if ( !empty( $contentArea ) ) {
-			$values['content_area'] = $contentArea->getName();
+		if ( !empty( $postData['kslContentAreaName'] ) ) {
+			$values['content_area'] = $postData['kslContentAreaName'];
 		}
 		for ( $i = 0; $i < count( $categories ); $i++ ) {
 			$values[ 'category_' . ( $i + 1 ) ] = $categories[ $i ];

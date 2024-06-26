@@ -521,4 +521,28 @@ class KolsherutLinks {
 		}
 		return $excludedArticleTypes;
 	}
+
+	/**
+	 * Wrapper around functionality in the ArticleContentArea extension.
+	 * This version is more strict and will only accept a valid category name,
+	 * even if no $wgArticleContentAreaCategoryName is set.
+	 *
+	 * @param string|array $contentAreaName
+	 * @return bool
+	 */
+	public static function isValidContentArea( $contentAreaName ) {
+		if ( ExtensionRegistry::getInstance()->isLoaded( 'ArticleContentArea' ) ) {
+			$configuredValidContentAreas =
+				\MediaWiki\Extension\ArticleContentArea\ArticleContentArea::getValidContentAreas();
+			if ( !empty( $configuredValidContentAreas ) ) {
+				// Rely on existing configuration of valid content areas.
+				return \MediaWiki\Extension\ArticleContentArea\ArticleContentArea::isValidContentArea(
+					$contentAreaName
+				);
+			}
+		}
+		// Fall back to simply requiring a valid category name.
+		$contentArea = Category::newFromName( $contentAreaName );
+		return ( !empty( $contentArea ) && !empty( $contentArea->getID() ) );
+	}
 }
