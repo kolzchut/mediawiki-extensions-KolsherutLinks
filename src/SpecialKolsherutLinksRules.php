@@ -69,6 +69,10 @@ class SpecialKolsherutLinksRules extends SpecialPage {
 			'isFallback' => $this->msg( 'kolsherutlinks-rules-header-rule-is-fallback' )->text(),
 			'priority' => $this->msg( 'kolsherutlinks-rules-header-rule-priority' )->text(),
 		];
+		$templateData['pager'] = [
+			'narrative' => $this->msg( 'kolsherutlinks-table-pager-narrative' )->text(),
+			'allRows' => $this->msg( 'kolsherutlinks-table-pager-all-rows' )->text(),
+		];
 		$templateData['rows'] = [];
 		$output->allowClickjacking();
 		$output->addModules( [ 'ext.KolsherutLinks.list' ] );

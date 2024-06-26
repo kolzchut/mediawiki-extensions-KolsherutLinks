@@ -51,7 +51,7 @@
 		<span
 			class="pagedisplay"
 			data-pager-output-filtered
-				="{startRow:input} &ndash; {endRow} / {filteredRows} of {totalRows} total rows"
+				="{{{pager.narrative}}}"
 		></span>
 		<div class="pager-button next"></div>
 		<div class="pager-button last"></div>
@@ -60,7 +60,7 @@
 			<option value="20">20</option>
 			<option value="30">30</option>
 			<option value="40">40</option>
-			<option value="all">All Rows</option>
+			<option value="all">{{pager.allRows}}</option>
 		</select>
 	</form>
 </div>

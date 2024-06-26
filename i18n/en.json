@@ -18,6 +18,9 @@
 
 	"kolsherutlinks-log-link-name": "Link ID $1",
 
+	"kolsherutlinks-table-pager-narrative": "{startRow:input} &ndash; {endRow} / {filteredRows} of {totalRows} total rows",
+	"kolsherutlinks-table-pager-all-rows": "All Rows",
+
 	"kolsherutlinks-list-desc": "Kol Sherut links and display rules",
 	"kolsherutlinks-list-header-url": "URL",
 	"kolsherutlinks-list-header-text": "Text",

@@ -67,6 +67,10 @@ class SpecialKolsherutLinksList extends SpecialPage {
 			'pageCount' => $this->msg( 'kolsherutlinks-list-header-pagecount' )->text(),
 			'categories' => $this->msg( 'kolsherutlinks-list-header-categories' )->text(),
 		];
+		$templateData['pager'] = [
+			'narrative' => $this->msg( 'kolsherutlinks-table-pager-narrative' )->text(),
+			'allRows' => $this->msg( 'kolsherutlinks-table-pager-all-rows' )->text(),
+		];
 		$templateData['rows'] = [];
 		$output->allowClickjacking();
 		$output->addModules( [ 'ext.KolsherutLinks.list', 'ext.KolsherutLinks.confirmation' ] );

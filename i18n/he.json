@@ -18,6 +18,9 @@
 
 	"kolsherutlinks-log-link-name": "קישור במזוהה $1",
 
+	"kolsherutlinks-table-pager-narrative": "{startRow:input} &ndash; {endRow} / {filteredRows} מתוך {totalRows} שורות בסה''כ",
+	"kolsherutlinks-table-pager-all-rows": "כל השורות",
+
 	"kolsherutlinks-list-desc": "קישורים לכל שרות",
 	"kolsherutlinks-list-header-url": "URL",
 	"kolsherutlinks-list-header-text": "טקסט",
