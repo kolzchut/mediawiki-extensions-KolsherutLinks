@@ -1,6 +1,6 @@
 /* global window, document, mw, $ */
 
-mw.loader.using( [ 'mediawiki.api' ], function () {
+mw.loader.using( [ 'jquery.suggestions' ], function () {
 	// Hide all blank non-required category fields.
 	$('.ksl-category-optional input:text')
 		.filter(function() { return this.value == ""; })
@@ -43,23 +43,24 @@ mw.loader.using( [ 'mediawiki.api' ], function () {
 		$('#ksl-add-category').hide();
 	} );
 
-	// Load jQuery UI to give us a decent autocomplete widget
-	$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', 
-		'https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css')
-	);
-	$.getScript( 'https://code.jquery.com/ui/1.13.2/jquery-ui.js', function () {
-		const categories = mw.config.get('kslAllCategories');
-		if ( categories != null ) {
-			$('.ksl-category-name input[type=text]').autocomplete({
-				source: categories
-			});
-		}
-		const contentAreas = mw.config.get('kslAllContentAreas');
-		if ( contentAreas != null ) {
-			$('.ksl-content-area-name input[type=text]').autocomplete({
-				source: contentAreas
-			});
-		}
-	} );
+	// Attach content area and category suggestions to text inputs via jquery.suggestions.js
+	const categories = mw.config.get('kslAllCategories');
+	if ( categories != null ) {
+		$('.ksl-category-name input[type=text]').suggestions({
+			fetch: function ( val ) {
+				var $el = $( this );
+				$el.suggestions( 'suggestions', categories.filter( c => c.indexOf( val ) === 0 ) );
+			}
+		});
+	}
+	const contentAreas = mw.config.get('kslAllContentAreas');
+	if ( contentAreas != null ) {
+		$('.ksl-content-area-name input[type=text]').suggestions({
+			fetch: function ( val ) {
+				var $el = $( this );
+				$el.suggestions( 'suggestions', contentAreas.filter( c => c.indexOf( val ) === 0 ) );
+			}
+		});
+	}
 
 } );
