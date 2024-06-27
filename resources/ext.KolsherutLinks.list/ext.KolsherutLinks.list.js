@@ -1,6 +1,6 @@
 /* global window, document, mw, OO, $ */
 
-mw.loader.using( [ 'mediawiki.api', 'jquery.tablesorter.pager' ], function () {
+mw.loader.using( [ 'jquery.tablesorter.pager' ], function () {
 	// Define pager options
 	var pagerOptions = {
 		// target the pager markup - see the HTML block below
