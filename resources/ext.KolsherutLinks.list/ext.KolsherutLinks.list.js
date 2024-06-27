@@ -1,5 +1,13 @@
 /* global window, document, mw, OO, $ */
 
+/**
+ * Note that this module relies on the jquery.tablesorter.pager bundle of 
+ * the tablesorter and pager plugins and jQuery itself, all in versions
+ * different from those that ship with MediaWiki. These versions of the
+ * plugins are much more feature-rich and provide functionality required
+ * by the KolsherutLinks admin interface, and the bundled jQuery base is
+ * their dependency.
+ */
 mw.loader.using( [ 'jquery.tablesorter.pager' ], function () {
 	// Define pager options
 	var pagerOptions = {
