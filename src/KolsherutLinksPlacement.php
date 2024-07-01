@@ -118,9 +118,9 @@ class KolsherutLinksPlacement {
 	private static function renderUrl( $link ) {
 		// Assemble UTM parameters
 		$config = MediaWikiServices::getInstance()->getMainConfig();
-		$server = $config->get( 'ArticlePath' );
-		$languageCode = $config->get( 'LanguageCode' );
-		$source = str_replace( '$1', $languageCode, $server );
+		$server = $config->get( 'ServerName' );
+		$path = $config->get( 'ArticlePath' );
+		$source = str_replace( '$1', '', $server . $path );
 		$params = [
 			'utm_source' => $source,
 			'utm_medium' => 'website',
